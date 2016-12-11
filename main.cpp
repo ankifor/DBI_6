@@ -14,6 +14,10 @@
 
 using namespace std;
 
+extern "C" void run_query0(const Database &db);
+extern "C" void run_query1(const Database &db);
+extern "C" void run_query2(const Database &db);
+extern "C" void run_query3(const Database &db);
 
 Name_Generator name_generator;
 
@@ -23,133 +27,117 @@ static void read_data(const string& path)
 {
 	ifstream in;
 
-	in.open(path + "tpcc_warehouse.tbl");
-	db.warehouse.read_from_file(in);
-	in.close();
+//	in.open(path + "tpcc_warehouse.tbl");
+//	db.warehouse.read_from_file(in);
+//	in.close();
 
-	in.open(path + "tpcc_district.tbl");
-	db.district.read_from_file(in);
-	in.close();
+//	in.open(path + "tpcc_district.tbl");
+//	db.district.read_from_file(in);
+//	in.close();
+//
+//	in.open(path + "tpcc_customer.tbl");
+//	db.customer.read_from_file(in);
+//	in.close();
+//
+//	in.open(path + "tpcc_history.tbl");
+//	db.history.read_from_file(in);
+//	in.close();
 
-	in.open(path + "tpcc_customer.tbl");
-	db.customer.read_from_file(in);
-	in.close();
-
-	in.open(path + "tpcc_history.tbl");
-	db.history.read_from_file(in);
-	in.close();
-
-	in.open(path + "tpcc_order.tbl");
+	in.open(path + "tpcc_order_1.tbl");
 	db.order.read_from_file(in);
 	in.close();
 
-	in.open(path + "tpcc_neworder.tbl");
-	db.neworder.read_from_file(in);
-	in.close();
-
-	in.open(path + "tpcc_orderline.tbl");
-	db.orderline.read_from_file(in);
-	in.close();
-
-	in.open(path + "tpcc_item.tbl");
-	db.item.read_from_file(in);
-	in.close();
-
-	in.open(path + "tpcc_stock.tbl");
-	db.stock.read_from_file(in);
-	in.close();
+//	in.open(path + "tpcc_neworder.tbl");
+//	db.neworder.read_from_file(in);
+//	in.close();
+//
+//	in.open(path + "tpcc_orderline.tbl");
+//	db.orderline.read_from_file(in);
+//	in.close();
+//
+//	in.open(path + "tpcc_item.tbl");
+//	db.item.read_from_file(in);
+//	in.close();
+//
+//	in.open(path + "tpcc_stock.tbl");
+//	db.stock.read_from_file(in);
+//	in.close();
 }
 
 int main(int argc, char* argv[]) {
-	if (argc != 5) {
+	if (argc != 2) {
 		cerr << "usage: " << argv[0] 
-		     << " <schema file>" 
-		     << " <source folder>"
-		     << " <object folder>"
 			 << " <data dir>"
 		     << endl
 		     << argc << endl;
 		return -1;
 	}
 	
-	string schema_path = string(argv[1],strlen(argv[1]));
-	string source_path = string(argv[2],strlen(argv[2])) + "/";
-	string object_path = string(argv[3],strlen(argv[3])) + "/";
-	string path_data = string(argv[4],strlen(argv[4])) + "/";
+	string path_data = string(argv[1],strlen(argv[1])) + "/";
 	
 	cout << "reading db from '" << path_data << "'..." << endl;
 	read_data(path_data);
+
+	ofstream out;
+	chrono::duration<int64_t, std::milli> elapsed0;
+	chrono::duration<int64_t, std::milli> elapsed1;
+	chrono::duration<int64_t, std::milli> elapsed2;
+	chrono::duration<int64_t, std::milli> elapsed3;
 	
-	cout << "parsing schema from'" << schema_path << "'..." << endl;
-	Parser_Schema p(schema_path);
-	unique_ptr<Schema> schema;
+	chrono::high_resolution_clock::time_point start;
+	chrono::high_resolution_clock::time_point end;
+	
+	elapsed0 = chrono::duration_cast<chrono::milliseconds>(end - end);
+	elapsed1 = chrono::duration_cast<chrono::milliseconds>(end - end);
+	elapsed2 = chrono::duration_cast<chrono::milliseconds>(end - end);
+	elapsed3 = chrono::duration_cast<chrono::milliseconds>(end - end);
+	
+	int n = 1000;
+	ofstream devnull;
+	devnull.open("/dev/null");
+	{int i; cout << "..."; cin >> i; cout << endl;}
 	try {
-		schema = p.parse();
-	} catch (ParserError& e) {
+		//cin >> n;
+		if (n<=0) throw runtime_error("negative number of runs");
+		for (int i=0;i<n;++i) {
+			auto coutbuf = cout.rdbuf(devnull.rdbuf());
+			
+//		start = chrono::high_resolution_clock::now();
+//		run_query0(db);
+//		end = chrono::high_resolution_clock::now();
+//		elapsed0 += chrono::duration_cast<chrono::milliseconds>(end - start);
+//		
+//		start = chrono::high_resolution_clock::now();
+//		run_query1(db);
+//		end = chrono::high_resolution_clock::now();
+//		elapsed1 += chrono::duration_cast<chrono::milliseconds>(end - start);
+//		
+		start = chrono::high_resolution_clock::now();
+		run_query2(db);
+		end = chrono::high_resolution_clock::now();
+		elapsed2 += chrono::duration_cast<chrono::milliseconds>(end - start);
+//		
+//		start = chrono::high_resolution_clock::now();
+//		run_query3(db);
+//		end = chrono::high_resolution_clock::now();
+//		elapsed3 += chrono::duration_cast<chrono::milliseconds>(end - start);
+			
+			cout.rdbuf(coutbuf);
+			//cerr << elapsed.count() << "ms" << endl;
+		}
+		
+		cerr << elapsed0.count() / n << "ms avg0" << endl;
+		cerr << elapsed1.count() / n << "ms avg1" << endl;
+		cerr << elapsed2.count() / n << "ms avg2" << endl;
+		cerr << elapsed3.count() / n << "ms avg3" << endl;
+		
+		
+	} catch (runtime_error& e) {
 		cerr << e.what() << endl;
 		exit(1);
 	}
+	{int i; cout << "..."; cin >> i; cout << endl;}
 	
-	string input_string = "";
-	ofstream out;
-	string cpp_query = source_path + "query_1.cpp";
-	string o_types = object_path + "Types.cpp.o";
-	string o_schema = object_path + "schema_1.cpp.o";
-	string so_query = object_path + "query_1.so";
-	string compilation_command = "g++ "
-		+ cpp_query + " " + o_types + " " + o_schema + " "
-		+ " -std=c++11 -O3 -fPIC -shared -rdynamic -o "
-		+ so_query
-	;
-	
-	chrono::duration<int64_t, std::milli> elapsed_compilation;
-	chrono::duration<int64_t, std::milli> elapsed_execution;
-	chrono::high_resolution_clock::time_point start;
-	chrono::high_resolution_clock::time_point end;
-	while (true) {
-		try {
-			cout << "#";
-			getline(cin, input_string);
-			//transform(input_string.begin(), input_string.end(), input_string.begin(), ::tolower);
-			if (input_string == "quit" || input_string == "exit") break;
-			if (input_string.empty()) continue;
-			//parse query
-			Parser_Query q(input_string, schema.get(), "db");
-			q.parse();
-			//create temporary file
-			out.open(cpp_query, ios_base::out);
-			out << q.generate();
-			out.close();
-			//compiling
-			start = chrono::high_resolution_clock::now();
-			int res  = system(compilation_command.c_str());
-			end = chrono::high_resolution_clock::now();
-			elapsed_compilation = chrono::duration_cast<chrono::milliseconds>(end - start);
-			if (res != 0) throw runtime_error("g++ exited with error " + to_string(res));
-			//load lib
-			void* handle=dlopen(so_query.c_str(),RTLD_NOW);
-			if (!handle) throw runtime_error(dlerror());
-			//get function handler
-			auto fn=reinterpret_cast<void (*)(const Database&)>(dlsym(handle, "run_query"));
-			if (!fn) throw runtime_error(dlerror());
-			//run function
-			start = chrono::high_resolution_clock::now();
-			fn(db);
-			end = chrono::high_resolution_clock::now();
-			elapsed_execution = chrono::duration_cast<chrono::milliseconds>(end - start);
-			//close lib
-			if (dlclose(handle)) throw runtime_error(dlerror());
-			cout << "compilation: " << elapsed_compilation.count() << " ms" << endl
-				 << "execution:   " << elapsed_execution.count()   << " ms" << endl;
-			
-		} catch (ParserQueryError& e) {
-			cerr << e.what() << endl;
-			continue;
-		} catch (runtime_error& e) {
-			cerr << e.what() << endl;
-			continue;
-		}
-		
-	}
+	devnull.close();
 	return 0;
 }

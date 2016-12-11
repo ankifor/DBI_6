@@ -88,6 +88,22 @@ void Table_warehouse::read_from_file(ifstream& in)
 		insert(in_w_id,in_w_name,in_w_street_1,in_w_street_2,in_w_city,in_w_state,in_w_zip,in_w_tax,in_w_ytd);
 	}
 }
+void Table_warehouse::write_to_file(ofstream& out) const
+{
+	assert(out.is_open());
+	for (size_t tid = 0; tid < size(); ++tid) {
+		out << ""    << w_id[tid]
+			<< FLD_DLM << w_name[tid]
+			<< FLD_DLM << w_street_1[tid]
+			<< FLD_DLM << w_street_2[tid]
+			<< FLD_DLM << w_city[tid]
+			<< FLD_DLM << w_state[tid]
+			<< FLD_DLM << w_zip[tid]
+			<< FLD_DLM << w_tax[tid]
+			<< FLD_DLM << w_ytd[tid]
+			<< ROW_DLM;
+	}
+}
 
 
 Tid Table_district::insert(Integer in_d_id,Integer in_d_w_id,Varchar<10> in_d_name,Varchar<20> in_d_street_1,Varchar<20> in_d_street_2,Varchar<20> in_d_city,Char<2> in_d_state,Char<9> in_d_zip,Numeric<4,4> in_d_tax,Numeric<12,2> in_d_ytd,Integer in_d_next_o_id)
@@ -176,6 +192,24 @@ void Table_district::read_from_file(ifstream& in)
 		getline(in, buf_field, ROW_DLM); in_d_next_o_id = Integer::castString(buf_field.data(), buf_field.length());
 
 		insert(in_d_id,in_d_w_id,in_d_name,in_d_street_1,in_d_street_2,in_d_city,in_d_state,in_d_zip,in_d_tax,in_d_ytd,in_d_next_o_id);
+	}
+}
+void Table_district::write_to_file(ofstream& out) const
+{
+	assert(out.is_open());
+	for (size_t tid = 0; tid < size(); ++tid) {
+		out << "" << d_id[tid]
+			<< FLD_DLM << d_w_id[tid]
+			<< FLD_DLM << d_name[tid]
+			<< FLD_DLM << d_street_1[tid]
+			<< FLD_DLM << d_street_2[tid]
+			<< FLD_DLM << d_city[tid]
+			<< FLD_DLM << d_state[tid]
+			<< FLD_DLM << d_zip[tid]
+			<< FLD_DLM << d_tax[tid]
+			<< FLD_DLM << d_ytd[tid]
+			<< FLD_DLM << d_next_o_id[tid]
+			<< ROW_DLM;
 	}
 }
 
@@ -321,6 +355,34 @@ void Table_customer::read_from_file(ifstream& in)
 		insert(in_c_id,in_c_d_id,in_c_w_id,in_c_first,in_c_middle,in_c_last,in_c_street_1,in_c_street_2,in_c_city,in_c_state,in_c_zip,in_c_phone,in_c_since,in_c_credit,in_c_credit_lim,in_c_discount,in_c_balance,in_c_ytd_paymenr,in_c_payment_cnt,in_c_delivery_cnt,in_c_data);
 	}
 }
+void Table_customer::write_to_file(ofstream& out) const
+{
+	assert(out.is_open());
+	for (size_t tid = 0; tid < size(); ++tid) {
+		out << "" << c_id[tid]
+			<< FLD_DLM << c_d_id[tid]
+			<< FLD_DLM << c_w_id[tid]
+			<< FLD_DLM << c_first[tid]
+			<< FLD_DLM << c_middle[tid]
+			<< FLD_DLM << c_last[tid]
+			<< FLD_DLM << c_street_1[tid]
+			<< FLD_DLM << c_street_2[tid]
+			<< FLD_DLM << c_city[tid]
+			<< FLD_DLM << c_state[tid]
+			<< FLD_DLM << c_zip[tid]
+			<< FLD_DLM << c_phone[tid]
+			<< FLD_DLM << c_since[tid]
+			<< FLD_DLM << c_credit[tid]
+			<< FLD_DLM << c_credit_lim[tid]
+			<< FLD_DLM << c_discount[tid]
+			<< FLD_DLM << c_balance[tid]
+			<< FLD_DLM << c_ytd_paymenr[tid]
+			<< FLD_DLM << c_payment_cnt[tid]
+			<< FLD_DLM << c_delivery_cnt[tid]
+			<< FLD_DLM << c_data[tid]
+			<< ROW_DLM;
+	}
+}
 
 
 Tid Table_history::insert(Integer in_h_c_id,Integer in_h_c_d_id,Integer in_h_c_w_id,Integer in_h_d_id,Integer in_h_w_id,Timestamp in_h_date,Numeric<6,2> in_h_amount,Varchar<24> in_h_data)
@@ -392,6 +454,21 @@ void Table_history::read_from_file(ifstream& in)
 		insert(in_h_c_id,in_h_c_d_id,in_h_c_w_id,in_h_d_id,in_h_w_id,in_h_date,in_h_amount,in_h_data);
 	}
 }
+void Table_history::write_to_file(ofstream& out) const
+{
+	assert(out.is_open());
+	for (size_t tid = 0; tid < size(); ++tid) {
+		out << "" << h_c_id[tid]
+			<< FLD_DLM << h_c_d_id[tid]
+			<< FLD_DLM << h_c_w_id[tid]
+			<< FLD_DLM << h_d_id[tid]
+			<< FLD_DLM << h_w_id[tid]
+			<< FLD_DLM << h_date[tid]
+			<< FLD_DLM << h_amount[tid]
+			<< FLD_DLM << h_data[tid]
+			<< ROW_DLM;
+	}
+}
 
 
 Tid Table_neworder::insert(Integer in_no_o_id,Integer in_no_d_id,Integer in_no_w_id)
@@ -440,6 +517,16 @@ void Table_neworder::read_from_file(ifstream& in)
 		getline(in, buf_field, ROW_DLM); in_no_w_id = Integer::castString(buf_field.data(), buf_field.length());
 
 		insert(in_no_o_id,in_no_d_id,in_no_w_id);
+	}
+}
+void Table_neworder::write_to_file(ofstream& out) const
+{
+	assert(out.is_open());
+	for (size_t tid = 0; tid < size(); ++tid) {
+		out << "" << no_o_id[tid]
+			<< FLD_DLM << no_d_id[tid]
+			<< FLD_DLM << no_w_id[tid]
+			<< ROW_DLM;
 	}
 }
 
@@ -518,6 +605,21 @@ void Table_order::read_from_file(ifstream& in)
 		getline(in, buf_field, ROW_DLM); in_o_all_local = Numeric<1,0>::castString(buf_field.data(), buf_field.length());
 
 		insert(in_o_id,in_o_d_id,in_o_w_id,in_o_c_id,in_o_entry_d,in_o_carrier_id,in_o_ol_cnt,in_o_all_local);
+	}
+}
+void Table_order::write_to_file(ofstream& out) const
+{
+	assert(out.is_open());
+	for (size_t tid = 0; tid < size(); ++tid) {
+		out << "" << o_id[tid]
+			<< FLD_DLM << o_d_id[tid]
+			<< FLD_DLM << o_w_id[tid]
+			<< FLD_DLM << o_c_id[tid]
+			<< FLD_DLM << o_entry_d[tid]
+			<< FLD_DLM << o_carrier_id[tid]
+			<< FLD_DLM << o_ol_cnt[tid]
+			<< FLD_DLM << o_all_local[tid]
+			<< ROW_DLM;
 	}
 }
 
@@ -605,6 +707,23 @@ void Table_orderline::read_from_file(ifstream& in)
 		insert(in_ol_o_id,in_ol_d_id,in_ol_w_id,in_ol_number,in_ol_i_id,in_ol_supply_w_id,in_ol_delivery_d,in_ol_quantity,in_ol_amount,in_ol_dist_info);
 	}
 }
+void Table_orderline::write_to_file(ofstream& out) const
+{
+	assert(out.is_open());
+	for (size_t tid = 0; tid < size(); ++tid) {
+		out << "" << ol_o_id[tid]
+			<< FLD_DLM << ol_d_id[tid]
+			<< FLD_DLM << ol_w_id[tid]
+			<< FLD_DLM << ol_number[tid]
+			<< FLD_DLM << ol_i_id[tid]
+			<< FLD_DLM << ol_supply_w_id[tid]
+			<< FLD_DLM << ol_delivery_d[tid]
+			<< FLD_DLM << ol_quantity[tid]
+			<< FLD_DLM << ol_amount[tid]
+			<< FLD_DLM << ol_dist_info[tid]
+			<< ROW_DLM;
+	}
+}
 
 
 Tid Table_item::insert(Integer in_i_id,Integer in_i_im_id,Varchar<24> in_i_name,Numeric<5,2> in_i_price,Varchar<50> in_i_data)
@@ -663,6 +782,18 @@ void Table_item::read_from_file(ifstream& in)
 		getline(in, buf_field, ROW_DLM); in_i_data = Varchar<50>::castString(buf_field.data(), buf_field.length());
 
 		insert(in_i_id,in_i_im_id,in_i_name,in_i_price,in_i_data);
+	}
+}
+void Table_item::write_to_file(ofstream& out) const
+{
+	assert(out.is_open());
+	for (size_t tid = 0; tid < size(); ++tid) {
+		out << "" << i_id[tid]
+			<< FLD_DLM << i_im_id[tid]
+			<< FLD_DLM << i_name[tid]
+			<< FLD_DLM << i_price[tid]
+			<< FLD_DLM << i_data[tid]
+			<< ROW_DLM;
 	}
 }
 
@@ -783,6 +914,30 @@ void Table_stock::read_from_file(ifstream& in)
 		getline(in, buf_field, ROW_DLM); in_s_data = Varchar<50>::castString(buf_field.data(), buf_field.length());
 
 		insert(in_s_i_id,in_s_w_id,in_s_quantity,in_s_dist_01,in_s_dist_02,in_s_dist_03,in_s_dist_04,in_s_dist_05,in_s_dist_06,in_s_dist_07,in_s_dist_08,in_s_dist_09,in_s_dist_10,in_s_ytd,in_s_order_cnt,in_s_remote_cnt,in_s_data);
+	}
+}
+void Table_stock::write_to_file(ofstream& out) const
+{
+	assert(out.is_open());
+	for (size_t tid = 0; tid < size(); ++tid) {
+		out << "" << s_i_id[tid]
+			<< FLD_DLM << s_w_id[tid]
+			<< FLD_DLM << s_quantity[tid]
+			<< FLD_DLM << s_dist_01[tid]
+			<< FLD_DLM << s_dist_02[tid]
+			<< FLD_DLM << s_dist_03[tid]
+			<< FLD_DLM << s_dist_04[tid]
+			<< FLD_DLM << s_dist_05[tid]
+			<< FLD_DLM << s_dist_06[tid]
+			<< FLD_DLM << s_dist_07[tid]
+			<< FLD_DLM << s_dist_08[tid]
+			<< FLD_DLM << s_dist_09[tid]
+			<< FLD_DLM << s_dist_10[tid]
+			<< FLD_DLM << s_ytd[tid]
+			<< FLD_DLM << s_order_cnt[tid]
+			<< FLD_DLM << s_remote_cnt[tid]
+			<< FLD_DLM << s_data[tid]
+			<< ROW_DLM;
 	}
 }
 

@@ -25,6 +25,7 @@ struct Table_warehouse {
 
 	size_t size() const {return w_id.size();}
 	void read_from_file(ifstream& in);
+	void write_to_file(ofstream& out) const;
 	Tid insert(Integer in_w_id,Varchar<10> in_w_name,Varchar<20> in_w_street_1,Varchar<20> in_w_street_2,Varchar<20> in_w_city,Char<2> in_w_state,Char<9> in_w_zip,Numeric<4,4> in_w_tax,Numeric<12,2> in_w_ytd);
 	void remove(Tid tid);
 };
@@ -48,6 +49,7 @@ struct Table_district {
 
 	size_t size() const {return d_id.size();}
 	void read_from_file(ifstream& in);
+	void write_to_file(ofstream& out) const;
 	Tid insert(Integer in_d_id,Integer in_d_w_id,Varchar<10> in_d_name,Varchar<20> in_d_street_1,Varchar<20> in_d_street_2,Varchar<20> in_d_city,Char<2> in_d_state,Char<9> in_d_zip,Numeric<4,4> in_d_tax,Numeric<12,2> in_d_ytd,Integer in_d_next_o_id);
 	void remove(Tid tid);
 };
@@ -84,6 +86,7 @@ struct Table_customer {
 
 	size_t size() const {return c_id.size();}
 	void read_from_file(ifstream& in);
+	void write_to_file(ofstream& out) const;
 	Tid insert(Integer in_c_id,Integer in_c_d_id,Integer in_c_w_id,Varchar<16> in_c_first,Char<2> in_c_middle,Varchar<16> in_c_last,Varchar<20> in_c_street_1,Varchar<20> in_c_street_2,Varchar<20> in_c_city,Char<2> in_c_state,Char<9> in_c_zip,Char<16> in_c_phone,Timestamp in_c_since,Char<2> in_c_credit,Numeric<12,2> in_c_credit_lim,Numeric<4,4> in_c_discount,Numeric<12,2> in_c_balance,Numeric<12,2> in_c_ytd_paymenr,Numeric<4,0> in_c_payment_cnt,Numeric<4,0> in_c_delivery_cnt,Varchar<500> in_c_data);
 	void remove(Tid tid);
 };
@@ -101,6 +104,7 @@ struct Table_history {
 
 	size_t size() const {return h_c_id.size();}
 	void read_from_file(ifstream& in);
+	void write_to_file(ofstream& out) const;
 	Tid insert(Integer in_h_c_id,Integer in_h_c_d_id,Integer in_h_c_w_id,Integer in_h_d_id,Integer in_h_w_id,Timestamp in_h_date,Numeric<6,2> in_h_amount,Varchar<24> in_h_data);
 	void remove(Tid tid);
 };
@@ -116,6 +120,7 @@ struct Table_neworder {
 
 	size_t size() const {return no_o_id.size();}
 	void read_from_file(ifstream& in);
+	void write_to_file(ofstream& out) const;
 	Tid insert(Integer in_no_o_id,Integer in_no_d_id,Integer in_no_w_id);
 	void remove(Tid tid);
 };
@@ -139,6 +144,7 @@ struct Table_order {
 
 	size_t size() const {return o_id.size();}
 	void read_from_file(ifstream& in);
+	void write_to_file(ofstream& out) const;
 	Tid insert(Integer in_o_id,Integer in_o_d_id,Integer in_o_w_id,Integer in_o_c_id,Timestamp in_o_entry_d,Integer in_o_carrier_id,Numeric<2,0> in_o_ol_cnt,Numeric<1,0> in_o_all_local);
 	void remove(Tid tid);
 };
@@ -161,6 +167,7 @@ struct Table_orderline {
 
 	size_t size() const {return ol_o_id.size();}
 	void read_from_file(ifstream& in);
+	void write_to_file(ofstream& out) const;
 	Tid insert(Integer in_ol_o_id,Integer in_ol_d_id,Integer in_ol_w_id,Integer in_ol_number,Integer in_ol_i_id,Integer in_ol_supply_w_id,Timestamp in_ol_delivery_d,Numeric<2,0> in_ol_quantity,Numeric<6,2> in_ol_amount,Char<24> in_ol_dist_info);
 	void remove(Tid tid);
 };
@@ -178,6 +185,7 @@ struct Table_item {
 
 	size_t size() const {return i_id.size();}
 	void read_from_file(ifstream& in);
+	void write_to_file(ofstream& out) const;
 	Tid insert(Integer in_i_id,Integer in_i_im_id,Varchar<24> in_i_name,Numeric<5,2> in_i_price,Varchar<50> in_i_data);
 	void remove(Tid tid);
 };
@@ -207,10 +215,10 @@ struct Table_stock {
 
 	size_t size() const {return s_i_id.size();}
 	void read_from_file(ifstream& in);
+	void write_to_file(ofstream& out) const;
 	Tid insert(Integer in_s_i_id,Integer in_s_w_id,Numeric<4,0> in_s_quantity,Char<24> in_s_dist_01,Char<24> in_s_dist_02,Char<24> in_s_dist_03,Char<24> in_s_dist_04,Char<24> in_s_dist_05,Char<24> in_s_dist_06,Char<24> in_s_dist_07,Char<24> in_s_dist_08,Char<24> in_s_dist_09,Char<24> in_s_dist_10,Numeric<8,0> in_s_ytd,Numeric<4,0> in_s_order_cnt,Numeric<4,0> in_s_remote_cnt,Varchar<50> in_s_data);
 	void remove(Tid tid);
 };
-
 
 struct Database {
 	Table_warehouse warehouse;

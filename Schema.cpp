@@ -104,9 +104,10 @@ string Schema::Relation::hppTableDeclaration() const {
 	}
 	out << endl;
 	//size()
-	out << "\tsize_t size() {return " << attributes[0].name << ".size();}" << endl;
+	out << "\tsize_t size() const {return " << attributes[0].name << ".size();}" << endl;
 	//read_from_file()
 	out << "\tvoid read_from_file(ifstream& in);" << endl;
+	out << "\tvoid write_to_file(ofstream& out) const;" << endl;
 	//insert()
 	out << "\tTid insert(";
 	delim = "";
@@ -261,6 +262,34 @@ string Schema::Relation::cppTableImplementation() const {
 				delim = ",";
 			}
 			out << ");" << endl;
+			indent.pop_back();
+			out << indent << "}" << endl;
+		}
+		indent.pop_back();
+		out << indent << "}" << endl;
+	}
+	// write_to_file method
+	{
+		// signature begin
+		out << indent << "void Table_" << name << "::" << "write_to_file(ofstream& out) const" << endl;
+		// signature end
+		out << indent << "{" << endl;
+		indent.push_back('\t');
+		out << indent << "assert(out.is_open());" << endl;
+		{
+			out << indent << "for (size_t tid = 0; tid < size(); ++tid) {" << endl;
+			indent.push_back('\t');
+				out << indent << "out << ";
+					indent.push_back('\t');
+					delim = "\"\"";
+					for (size_t i = 0; i < attributes.size(); ++i) {
+						const auto& attr = attributes[i];
+						out << delim << " << " << attr.name << "[tid]" << endl 
+							<< indent << "<< ";
+						delim = "FLD_DLM";
+					}
+					out << "ROW_DLM;" << endl;
+				indent.pop_back();
 			indent.pop_back();
 			out << indent << "}" << endl;
 		}
