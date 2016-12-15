@@ -18,6 +18,7 @@ extern "C" void run_query0(const Database &db);
 extern "C" void run_query1(const Database &db);
 extern "C" void run_query2(const Database &db);
 extern "C" void run_query3(const Database &db);
+extern "C" void run_query4(const Database &db);
 
 Name_Generator name_generator;
 
@@ -83,6 +84,7 @@ int main(int argc, char* argv[]) {
 	chrono::duration<int64_t, std::milli> elapsed1;
 	chrono::duration<int64_t, std::milli> elapsed2;
 	chrono::duration<int64_t, std::milli> elapsed3;
+	chrono::duration<int64_t, std::milli> elapsed4;
 	
 	chrono::high_resolution_clock::time_point start;
 	chrono::high_resolution_clock::time_point end;
@@ -91,8 +93,9 @@ int main(int argc, char* argv[]) {
 	elapsed1 = chrono::duration_cast<chrono::milliseconds>(end - end);
 	elapsed2 = chrono::duration_cast<chrono::milliseconds>(end - end);
 	elapsed3 = chrono::duration_cast<chrono::milliseconds>(end - end);
+	elapsed4 = chrono::duration_cast<chrono::milliseconds>(end - end);
 	
-	int n = 1000;
+	int n = 100;
 	ofstream devnull;
 	devnull.open("/dev/null");
 	{int i; cout << "..."; cin >> i; cout << endl;}
@@ -102,25 +105,31 @@ int main(int argc, char* argv[]) {
 		for (int i=0;i<n;++i) {
 			auto coutbuf = cout.rdbuf(devnull.rdbuf());
 			
-//		start = chrono::high_resolution_clock::now();
-//		run_query0(db);
-//		end = chrono::high_resolution_clock::now();
-//		elapsed0 += chrono::duration_cast<chrono::milliseconds>(end - start);
-//		
-//		start = chrono::high_resolution_clock::now();
-//		run_query1(db);
-//		end = chrono::high_resolution_clock::now();
-//		elapsed1 += chrono::duration_cast<chrono::milliseconds>(end - start);
-//		
-		start = chrono::high_resolution_clock::now();
-		run_query2(db);
-		end = chrono::high_resolution_clock::now();
-		elapsed2 += chrono::duration_cast<chrono::milliseconds>(end - start);
-//		
-//		start = chrono::high_resolution_clock::now();
-//		run_query3(db);
-//		end = chrono::high_resolution_clock::now();
-//		elapsed3 += chrono::duration_cast<chrono::milliseconds>(end - start);
+			//start = chrono::high_resolution_clock::now();
+			//run_query0(db);
+			//end = chrono::high_resolution_clock::now();
+			//elapsed0 += chrono::duration_cast<chrono::milliseconds>(end - start);
+			//
+			//start = chrono::high_resolution_clock::now();
+			//run_query1(db);
+			//end = chrono::high_resolution_clock::now();
+			//elapsed1 += chrono::duration_cast<chrono::milliseconds>(end - start);
+			
+			start = chrono::high_resolution_clock::now();
+			
+			run_query2(db);
+			end = chrono::high_resolution_clock::now();
+			elapsed2 += chrono::duration_cast<chrono::milliseconds>(end - start);
+			//
+			//start = chrono::high_resolution_clock::now();
+			//run_query3(db);
+			//end = chrono::high_resolution_clock::now();
+			//elapsed3 += chrono::duration_cast<chrono::milliseconds>(end - start);
+			
+			start = chrono::high_resolution_clock::now();
+			run_query4(db);
+			end = chrono::high_resolution_clock::now();
+			elapsed4 += chrono::duration_cast<chrono::milliseconds>(end - start);
 			
 			cout.rdbuf(coutbuf);
 			//cerr << elapsed.count() << "ms" << endl;
@@ -130,6 +139,7 @@ int main(int argc, char* argv[]) {
 		cerr << elapsed1.count() / n << "ms avg1" << endl;
 		cerr << elapsed2.count() / n << "ms avg2" << endl;
 		cerr << elapsed3.count() / n << "ms avg3" << endl;
+		cerr << elapsed4.count() / n << "ms avg4" << endl;
 		
 		
 	} catch (runtime_error& e) {

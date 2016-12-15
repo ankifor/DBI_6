@@ -61,11 +61,11 @@ Integer Integer::castString(const char* str,uint32_t strLen)
 //---------------------------------------------------------------------------
 static const uint64_t msPerDay = 24*60*60*1000;
 //---------------------------------------------------------------------------
-static unsigned mergeTime(unsigned hour,unsigned minute,unsigned second,unsigned ms)
-   // Merge into ms since midnight
-{
-   return ms+(1000*second)+(60*1000*minute)+(60*60*1000*hour);
-}
+//static unsigned mergeTime(unsigned hour,unsigned minute,unsigned second,unsigned ms)
+//   // Merge into ms since midnight
+//{
+//   return ms+(1000*second)+(60*1000*minute)+(60*60*1000*hour);
+//}
 //---------------------------------------------------------------------------
 static unsigned mergeJulianDay(unsigned year, unsigned month, unsigned day)
    // Algorithm from the Calendar FAQ
@@ -266,14 +266,14 @@ Timestamp Timestamp::null()
    return result;
 }
 //---------------------------------------------------------------------------
-static void splitTime(unsigned value,unsigned& hour,unsigned& minute,unsigned& second,unsigned& ms)
-   // Split ms since midnight
-{
-   ms=value%1000; value/=1000;
-   second=value%60; value/=60;
-   minute=value%60; value/=60;
-   hour=value%24;
-}
+//static void splitTime(unsigned value,unsigned& hour,unsigned& minute,unsigned& second,unsigned& ms)
+//   // Split ms since midnight
+//{
+//   ms=value%1000; value/=1000;
+//   second=value%60; value/=60;
+//   minute=value%60; value/=60;
+//   hour=value%24;
+//}
 //---------------------------------------------------------------------------
 std::ostream& operator<<(std::ostream& out,const Timestamp& value)
    // Output

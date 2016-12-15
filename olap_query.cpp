@@ -2,7 +2,11 @@
 #include "schema_1.hpp"
 #include <iostream>
 #include <unordered_map>
+
+#include "my_hash.h"
 using namespace std;
+
+#define My_Hash_U(_Key, _Tp) My_Hash<_Key, _Tp, hash_types::hash<_Key>, equal_to<_Key>, true, UpdateVal>
 
 //is generated 
 template<bool f1,bool f2,bool f3,typename IndexType>
@@ -12,13 +16,13 @@ void my_print_hash(IndexType& index) {
 	constexpr int n3 = n2 + (f2&&f3?1:0);
 
 	for (auto it = index.begin(); it != index.end(); ++it) {
-		if (f1) cout << get<n1>(it->first); else cout << "null";
+		if (f1) cout << get<n1>(get<0>(*it)); else cout << "null";
 		cout << ";" ;
-		if (f2) cout << get<n2>(it->first); else cout << "null";
+		if (f2) cout << get<n2>(get<0>(*it)); else cout << "null";
 		cout << ";" ;
-		if (f3) cout << get<n3>(it->first); else cout << "null";
+		if (f3) cout << get<n3>(get<0>(*it)); else cout << "null";
 		cout << ";" ;
-		cout << get<0>(it->second);
+		cout << get<0>(get<1>(*it));
 		cout << endl; 
 	}
 }
@@ -42,18 +46,16 @@ void my_update_hash(IndexType& index, key_type&& key,  mapped_type&& val) {
 	if (it == index.end()) {
 		index.insert(make_pair(key, val));
 	} else {
-		update_val(it->second, val);
+		update_val(get<1>(*it), val);
 	}
 }
 
 
-
-
-
-
-
-
-
+struct UpdateVal {
+	void operator()(tuple<Numeric<2,0>>& left, const tuple<Numeric<2,0>>&  right) {
+		get<0>(left) += get<0>(right);
+	}
+};
 
 //bool predicat0(const Varchar<16> &c_last) { return c_last == "BARBARBAR"; }
 
@@ -272,7 +274,7 @@ extern "C" void run_query0(const Database &db) {
 }
 
 
-
+//bucket
 extern "C" void run_query1(const Database &db) {
 	using type_key_111 = tuple<Integer,Integer,Integer>;
 	using type_val_111 = tuple<Numeric<2,0>>;
@@ -433,7 +435,7 @@ extern "C" void run_query1(const Database &db) {
 }
 
 
-
+//normal
 extern "C" void run_query2(const Database &db) {
 	using type_val = tuple<Numeric<2,0>>;
 	
@@ -519,7 +521,7 @@ extern "C" void run_query2(const Database &db) {
 }
 
 
-
+//union
 extern "C" void run_query3(const Database &db) {
 	using type_key_111 = tuple<Integer,Integer,Integer>;
 	using type_val_111 = tuple<Numeric<2,0>>;
@@ -692,4 +694,106 @@ extern "C" void run_query3(const Database &db) {
 		}
 	my_print_hash<false,false,false>(val_000);
 	
+}
+
+
+//2 with new hash
+extern "C" void run_query4(const Database &db) {
+	using type_val = tuple<Numeric<2,0>>;
+	
+	using type_key_111 = tuple<Integer,Integer,Integer>;
+	My_Hash_U(type_key_111, type_val) hash_111;
+	
+
+	using type_key_110 = tuple<Integer,Integer>;
+	My_Hash_U(type_key_110, type_val) hash_110;
+	My_Hash_U(type_key_110, type_val) hash_101;
+	My_Hash_U(type_key_110, type_val) hash_011;
+
+	using type_key_100 = tuple<Integer>;
+	My_Hash_U(type_key_100, type_val) hash_100;
+	My_Hash_U(type_key_100, type_val) hash_010;
+	My_Hash_U(type_key_100, type_val) hash_001;
+	
+	type_val val_000;
+	
+	//scan
+	for (Tid tid0 = 0; tid0 < db.order.size(); ++tid0) {
+		hash_111.modify(
+			make_tuple(db.order.o_d_id[tid0],db.order.o_w_id[tid0],db.order.o_carrier_id[tid0])
+			, make_tuple(db.order.o_ol_cnt[tid0])
+		);
+	}
+	
+	my_print_hash<true,true,true>(hash_111._storage);
+
+	//construct hash_110 from hash_111
+	for (auto it = hash_111._storage.begin(); it != hash_111._storage.end(); ++it) {
+		hash_110.modify(
+			make_tuple(get<0>(get<0>(*it)),get<1>(get<0>(*it)))
+			, get<1>(*it)
+		);
+	}
+	
+	//construct hash_101 from hash_111
+	for (auto it = hash_111._storage.begin(); it != hash_111._storage.end(); ++it) {
+		hash_101.modify(
+			make_tuple(get<0>(get<0>(*it)),get<2>(get<0>(*it)))
+			, get<1>(*it)
+		);
+	}
+	
+	//construct hash_011 from hash_111
+	for (auto it = hash_111._storage.begin(); it != hash_111._storage.end(); ++it) {
+		hash_011.modify(
+			make_tuple(get<1>(get<0>(*it)),get<2>(get<0>(*it)))
+			, get<1>(*it)
+		);
+	}
+	hash_111.clear();
+	
+	my_print_hash<true,true,false>(hash_110._storage);
+	
+	//construct hash_100 from hash_110
+	for (auto it = hash_110._storage.begin(); it != hash_110._storage.end(); ++it) {
+		hash_100.modify(
+			make_tuple(get<0>(get<0>(*it)))
+			, get<1>(*it)
+		);
+	}
+	
+	//construct hash_010 from hash_110
+	for (auto it = hash_110._storage.begin(); it != hash_110._storage.end(); ++it) {
+		hash_010.modify(
+			make_tuple(get<1>(get<0>(*it)))
+			, get<1>(*it)
+		);
+	}
+	hash_110.clear();
+
+	my_print_hash<true,false,true>(hash_101._storage);
+	
+	//construct hash_001 from hash_101
+	for (auto it = hash_101._storage.begin(); it != hash_101._storage.end(); ++it) {
+		hash_001.modify(
+			make_tuple(get<1>(get<0>(*it)))
+			, get<1>(*it)
+		);
+	}
+	
+	hash_101.clear();
+	my_print_hash<false,true,true>(hash_011._storage);
+	hash_011.clear();
+	my_print_hash<true,false,false>(hash_100._storage);
+	//construct val_000 from hash_100
+	for (auto it = hash_100._storage.begin(); it != hash_100._storage.end(); ++it) {
+		update_val(val_000, get<1>(*it));
+	}
+	hash_100.clear();
+
+	my_print_hash<false,true,false>(hash_010._storage);
+	hash_010.clear();
+	my_print_hash<false,false,true>(hash_001._storage);
+	hash_001.clear();
+	my_print_hash<false,false,false>(val_000);
 }
