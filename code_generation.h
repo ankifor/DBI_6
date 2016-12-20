@@ -49,10 +49,12 @@ struct Context {
 // Operator
 //==============================================================================
 struct Operator {
-public:	
-	Operator(const Context* context, stringstream& out): context(context), out(out) {}
-	
-	
+public:
+	Operator(const Context* context, stringstream& out)
+		: context(context), out(out) {}
+
+	virtual ~Operator() {}
+
 	const vector<Field_Unit>& getRequired() {
 		if (!computeRequiredFinished) {
 			computeRequired();
@@ -60,7 +62,7 @@ public:
 		}
 		return fields;
 	}
-	
+
 	const vector<Field_Unit>& getProduced() {
 		if (!computeRequiredFinished) {
 			computeRequired();
@@ -72,32 +74,32 @@ public:
 		}
 		return fields;
 	}
-	
+
 	virtual void consume(const Operator* caller) = 0;
 	virtual void produce() = 0;
-	
+
 	void setConsumer(Operator* consumer) {this->consumer = consumer;}
-protected: 
-	
+protected:
+
 	const Context* context = nullptr;
-	Operator* consumer;
+	Operator* consumer = nullptr;
 	stringstream& out;
-	
+
 	vector<Field_Unit> fields;
-	
+
 	bool computeRequiredFinished = false;
 	virtual void computeRequired() = 0;
-	
+
 	bool computeProducedFinished = false;
 	virtual void computeProduced() = 0;
-	
-	
+
+
 };
 //==============================================================================
 // Unary Operators
 //==============================================================================
 struct OperatorUnary : public Operator {
-	Operator* input = nullptr;	
+	Operator* input = nullptr;
 	OperatorUnary(const Context* context, stringstream& out) : Operator(context,out) {}
 	void setInput(Operator* input) {this->input = input;input->setConsumer(this);}
 };
@@ -106,12 +108,12 @@ struct OperatorScan : public OperatorUnary {
 	OperatorScan(const Context* context, stringstream& out, const string& tabname, const string& db_name);
 	void consume(const Operator* caller) {assert(false);/*should never be called*/}
 	void produce();
-	
+
 protected:
 	string tabname;
 	string db_name;
 	string tid_name;
-	
+
 	void computeRequired() {fields = consumer->getRequired();}
 	void computeProduced();
 };
@@ -121,7 +123,7 @@ struct OperatorPrint : public OperatorUnary {
 
 	void consume(const Operator* caller);
 	void produce() {input->produce();}
-	
+
 protected:
 	void computeRequired() {/*nothing to do here*/}
 	void computeProduced() {fields = input->getProduced();}
@@ -129,29 +131,29 @@ protected:
 
 
 struct OperatorProjection : public OperatorUnary {
-	OperatorProjection(const Context* context, stringstream& out, const vector<Field_Unit>& fields) 
+	OperatorProjection(const Context* context, stringstream& out, const vector<Field_Unit>& fields)
 		: OperatorUnary(context,out)
 		 {this->fields = fields;}
 
 	void consume(const Operator* caller) {consumer->consume(this);}
 	void produce() {input->produce();}
-	
+
 protected:
 	void computeRequired() {/*nothing to do*/}
 	void computeProduced();
 };
 
 struct OperatorSelect : public OperatorUnary {
-	OperatorSelect(const Context* context, stringstream& out, const Field_Comparison& condition) 
+	OperatorSelect(const Context* context, stringstream& out, const Field_Comparison& condition)
 		: OperatorUnary(context,out)
 		, condition(condition) {}
 
 	void consume(const Operator* caller);
 	void produce() {input->produce();}
-	
+
 protected:
 	Field_Comparison condition;
-	
+
 	void computeRequired();
 	void computeProduced();
 };
@@ -174,8 +176,8 @@ struct OperatorBinary : public Operator {
 	virtual void setRight(Operator* right) {
 		this->right=right; right->setConsumer(this);
 	}
-	
-	
+
+
 	void consume(const Operator* caller) {
 		if (caller == left) {
 			consumeLeft();
@@ -202,7 +204,7 @@ protected:
 
 	void computeRequired();
 	void computeProduced();
-	
+
 	void consumeLeft();
 	void consumeRight();
 };

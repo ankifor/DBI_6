@@ -29,7 +29,7 @@ template <unsigned maxLen> struct LengthIndicator {
 class Integer
 {
 public:
-   int32_t value;
+   int32_t value = 0;
 
    Integer() {}
    Integer(int32_t value) : value(value) {}
@@ -62,8 +62,9 @@ public:
    inline Integer operator*(const Integer& n) const { Integer r; r.value=value*n.value; return r; }
    /// Cast
    static Integer castString(const char* str,uint32_t strLen);
-   static Integer Min() { return Integer(INT32_MIN); };
-   static Integer Max() { return Integer(INT32_MAX); };
+   static const Integer Min() { return Integer(INT32_MIN); };
+   static const Integer Max() { return Integer(INT32_MAX); };
+   static const Integer Dummy() {return Integer(0);}
 };
 //---------------------------------------------------------------------------
 inline Integer modulo(Integer x,int32_t y)
@@ -104,14 +105,15 @@ public:
    bool operator<(const Varchar& other) const;
 
 	/// Build
-	static Varchar build(const char* value) { 
-		Varchar result; 
-		strncpy(result.value,value,maxLen); 
-		result.len=strnlen(value, maxLen); 
-		return result; 
+	static Varchar build(const char* value) {
+		Varchar result;
+		strncpy(result.value,value,maxLen);
+		result.len=strnlen(value, maxLen);
+		return result;
 	}
 	///Cast
 	static Varchar<maxLen> castString(const char* str,uint32_t strLen) {assert(strLen<=maxLen); Varchar<maxLen> result; result.len=strLen; memcpy(result.value,str,strLen); return result;};
+	static const Varchar<maxLen> Dummy() {Varchar<maxLen> r; r.len=0; return r;}
 };
 //---------------------------------------------------------------------------
 template <unsigned maxLen> uint64_t Varchar<maxLen>::hash() const
@@ -183,6 +185,8 @@ public:
       }
       assert(strLen<=maxLen); Char<maxLen> result; result.len=strLen; memcpy(result.value,str,strLen); return result;
    }
+
+   static const Char<maxLen> Dummy() {Char<maxLen> r; r.len=0; return r;}
 };
 //---------------------------------------------------------------------------
 template <unsigned maxLen> uint64_t Char<maxLen>::hash() const
@@ -398,6 +402,8 @@ public:
          return buildRaw(result);
       }
    }
+
+   static const Numeric<len,precision> Dummy() {return Numeric<len,precision>(0);}
 };
 //---------------------------------------------------------------------------
 template <unsigned len,unsigned precision> uint64_t Numeric<len,precision>::hash() const
@@ -444,7 +450,7 @@ template <unsigned len,unsigned precision> std::ostream& operator<<(std::ostream
 class Date
 {
    public:
-   int32_t value;
+   int32_t value = 0;
 
    Date() {}
    Date(int32_t value) : value(value) {}
@@ -465,6 +471,8 @@ class Date
    inline bool operator>=(const Date& n) const { return value>=n.value; }
    /// Cast
    static Date castString(const char* str,uint32_t strLen);
+
+   static const Date Dummy() {return Date(0);}
 };
 //---------------------------------------------------------------------------
 /// Extract year
@@ -477,7 +485,7 @@ class Timestamp
 {
 public:
    /// The value
-   uint64_t value;
+   uint64_t value = 0;
 
    Timestamp() {}
    Timestamp(uint64_t value) : value(value) {}
@@ -500,6 +508,8 @@ public:
    bool operator>(const Timestamp& t) const { return value>t.value; }
    /// Cast
    static Timestamp castString(const char* str,uint32_t strLen);
+
+   static const Timestamp Dummy() {return Timestamp(0);}
 };
 //---------------------------------------------------------------------------
 std::ostream& operator<<(std::ostream& out,const Timestamp& value);
@@ -544,9 +554,9 @@ uint64_t Timestamp::hash() const
 namespace hash_types {
 	template <typename TT>
 	struct hash {
-		size_t operator()(TT const& tt) const {                                              
-			return tt.hash();                                 
-		}                                              
+		size_t operator()(TT const& tt) const {
+			return tt.hash();
+		}
 	};
 
 	namespace {
@@ -575,11 +585,11 @@ namespace hash_types {
 
     template <typename ... TT>
     struct hash<std::tuple<TT...>> {
-        size_t operator()(std::tuple<TT...> const& tt) const {                                              
-            size_t seed = 0;                             
-            HashValueImpl<std::tuple<TT...> >::apply(seed, tt);    
-            return seed;                                 
-        }                                              
+        size_t operator()(std::tuple<TT...> const& tt) const {
+            size_t seed = 0;
+            HashValueImpl<std::tuple<TT...> >::apply(seed, tt);
+            return seed;
+        }
     };
 
 }
@@ -588,20 +598,20 @@ namespace hash_types {
 // out << tuple
 namespace aux {
 	template<std::size_t...> struct seq{};
-	 
+
 	template<std::size_t N, std::size_t... Is>
 	struct gen_seq : gen_seq<N-1, N-1, Is...>{};
-	 
+
 	template<std::size_t... Is>
 	struct gen_seq<0, Is...> : seq<Is...>{};
-	 
+
 	template<class Ch, class Tr, class Tuple, std::size_t... Is>
 	void print_tuple(std::basic_ostream<Ch,Tr>& os, Tuple const& t, seq<Is...>){
 		using swallow = int[];
 		(void)swallow{0, (void(os << (Is == 0? "" : ", ") << std::get<Is>(t)), 0)...};
 	}
-} 
- 
+}
+
 template<class Ch, class Tr, class... Args>
 auto operator<<(std::basic_ostream<Ch, Tr>& os, std::tuple<Args...> const& t) -> std::basic_ostream<Ch, Tr>&
 {
