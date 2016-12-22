@@ -39,7 +39,7 @@ public:
    }
 
    /// Hash
-   inline uint64_t hash() const;
+   inline size_t hash() const;
    /// Comparison
    inline bool operator==(const Integer& n) const { return value==n.value; }
    /// Comparison
@@ -87,7 +87,7 @@ public:
    /// The length
    unsigned length() const { return len; }
    /// Hash
-   inline uint64_t hash() const;
+   inline size_t hash() const;
    /// The first character
    char* begin() { return value; }
    /// Behind the last character
@@ -154,7 +154,7 @@ public:
    /// The length
    unsigned length() const { return len; }
    /// Hash
-   inline uint64_t hash() const;
+   inline size_t hash() const;
    /// The first character
    char* begin() { return value; }
    /// Behind the last character
@@ -225,7 +225,7 @@ public:
 
 public:
    /// Hash
-   inline uint64_t hash() const;
+   inline size_t hash() const;
    /// The length
    unsigned length() const { return value!=' '; }
    /// The first character
@@ -253,7 +253,7 @@ public:
    }
 };
 //---------------------------------------------------------------------------
-uint64_t Char<1>::hash() const
+size_t Char<1>::hash() const
 {
    uint64_t r=88172645463325252ull^value;
    r^=(r<<13);
@@ -289,7 +289,7 @@ public:
    long getRaw() const { return value; }
 
    /// Hash
-   inline uint64_t hash() const;
+   inline size_t hash() const;
    /// Comparison
    bool operator==(const Numeric<len,precision>& n) const { return value==n.value; }
    /// Comparison
@@ -456,7 +456,7 @@ class Date
    Date(int32_t value) : value(value) {}
 
    /// Hash
-   inline uint64_t hash() const;
+   inline size_t hash() const;
    /// Comparison
    inline bool operator==(const Date& n) const { return value==n.value; }
    /// Comparison
@@ -497,7 +497,7 @@ public:
    unsigned getRaw() const { return value; }
 
    /// Hash
-   inline uint64_t hash() const;
+   inline size_t hash() const;
    /// Comparison
    bool operator==(const Timestamp& t) const { return value==t.value; }
    /// Comparison
@@ -514,7 +514,7 @@ public:
 //---------------------------------------------------------------------------
 std::ostream& operator<<(std::ostream& out,const Timestamp& value);
 //---------------------------------------------------------------------------
-uint64_t Integer::hash() const
+size_t Integer::hash() const
 // Hash
 {
    uint64_t r=88172645463325252ull^value;
@@ -523,7 +523,7 @@ uint64_t Integer::hash() const
    return (r^=(r<<17));
 }
 //---------------------------------------------------------------------------
-uint64_t Date::hash() const
+size_t Date::hash() const
 // Hash
 {
    uint64_t r=88172645463325252ull^value;
@@ -532,7 +532,7 @@ uint64_t Date::hash() const
    return (r^=(r<<17));
 }
 //---------------------------------------------------------------------------
-uint64_t Timestamp::hash() const
+size_t Timestamp::hash() const
 // Hash
 {
    uint64_t r=88172645463325252ull^value;
@@ -541,11 +541,11 @@ uint64_t Timestamp::hash() const
    return (r^=(r<<17));
 }
 //---------------------------------------------------------------------------
-//template<class T> inline uint64_t hashKey(T x) {
+//template<class T> inline size_t hashKey(T x) {
 //   return x.hash();
 //}
 ////---------------------------------------------------------------------------
-//template<typename T, typename... Args> inline uint64_t hashKey(T first,Args... args) {
+//template<typename T, typename... Args> inline size_t hashKey(T first,Args... args) {
 //   return first.hash() ^ hashKey(args...);
 //}
 //---------------------------------------------------------------------------

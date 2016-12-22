@@ -82,6 +82,8 @@ public:
 	size_t size() const { return _size;}
 
 	Iterator insert(_Key key, _Tp val) {
+		rehash_if_full();
+
 		size_t bucket = get_bucket(key);
 		Entry** current = &_hash_table[bucket];
 		//if unique, then insert to the beginning of the bucket
@@ -97,13 +99,13 @@ public:
 			key, val, reinterpret_cast<void*>(*current)));
 		++_size;
 
-		rehash_if_full();
-
 		return Iterator(*this, bucket, *current);
 	}
 
 	Iterator modify(_Key key, _Tp val) {
 		_Eq eq;
+
+		rehash_if_full();
 
 		size_t bucket = get_bucket(key);
 		Entry** current = &_hash_table[bucket];
@@ -119,8 +121,6 @@ public:
 			//update
 			_upd(get<_Tp_N>(**current),val);
 		}
-
-		rehash_if_full();
 		return Iterator(*this, bucket, *current);
 	}
 
@@ -198,7 +198,8 @@ public:
 				//insert
 				get<_Next_N>(*it) = *current;
 				if (it_empty != _storage->end()) {
-					_storage->swap(it_empty,it);
+					//_storage->swap(it_empty,it);
+					*it_empty = *it;
 					*current = it_empty.get_data();
 					++it_empty;
 				} else {
