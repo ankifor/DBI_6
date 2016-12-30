@@ -5,6 +5,7 @@
 #include <tuple>
 
 #include "my_hash.h"
+#include "my_hash_D.h"
 using namespace std;
 
 #define My_Hash_U(_Key, _Tp) My_Hash<_Key, _Tp, hash_types::hash<_Key>, equal_to<_Key>, true, UpdateVal>
@@ -71,6 +72,10 @@ struct UpdateVal {
 		get<0>(left) += get<0>(right);
 	}
 };
+
+void UpdateVal1(tuple<Numeric<2,0>>& left, const tuple<Numeric<2,0>>&  right) {
+	get<0>(left) += get<0>(right);
+}
 
 //bool predicat0(const Varchar<16> &c_last) { return c_last == "BARBARBAR"; }
 
@@ -824,6 +829,15 @@ struct myEq {
 	}
 };
 
+template<bool f1,bool f2,bool f3>
+bool My_Eq_1(const tuple<Integer,Integer,Integer>& left, const tuple<Integer,Integer,Integer>& right) {
+	return
+		   (!f1 || get<0>(left)==get<0>(right))
+		&& (!f2 || get<1>(left)==get<1>(right))
+		&& (!f3 || get<2>(left)==get<2>(right))
+	;
+}
+
 static void hash_combine1(size_t& seed, size_t val) {
 	seed ^= val + 0x9e3779b9 + (seed<<6) + (seed>>2);
 }
@@ -845,6 +859,23 @@ struct myHash {
 		return seed;
 	}
 };
+
+template<bool f1,bool f2,bool f3>
+size_t My_Hash_1(const tuple<Integer,Integer,Integer>& key) {
+	size_t seed = 0;
+	if (f1) {
+		seed = get<0>(key).hash();
+		if (f2) hash_combine1(seed,get<1>(key).hash());
+		if (f3) hash_combine1(seed,get<2>(key).hash());
+	} else if (f2) {
+		seed = get<1>(key).hash();
+		if (f3) hash_combine1(seed,get<2>(key).hash());
+	} else if (f3) {
+		seed = get<2>(key).hash();
+	}
+	return seed;
+}
+
 
 //4 with same key
 extern "C" void run_query5(const Database &db) {
@@ -1085,19 +1116,11 @@ extern "C" void run_query_rollup_2(const Database &db) {
 
 	my_print_hash1<true,true,true>(hash_111._storage.get());
 
-	//construct hash_110 from hash_111
-//	for (auto it = hash_111._storage->begin(); it != hash_111._storage->end(); ++it) {
-//		hash_110.modify(get<0>(*it), get<1>(*it));
-//	}
 	hash_110.build_from_storage<true>();
 	hash_111.clear();
 
 	my_print_hash1<true,true,false>(hash_110._storage.get());
 
-	//construct hash_100 from hash_110
-//	for (auto it = hash_110._storage->begin(); it != hash_110._storage->end(); ++it) {
-//		hash_100.modify(get<0>(*it), get<1>(*it));
-//	}
 	hash_100.build_from_storage<true>();
 	my_print_hash1<true,false,false>(hash_100._storage.get());
 	//construct val_000 from hash_100

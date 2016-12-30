@@ -28,6 +28,7 @@ extern "C" void run_query5(const Database &db);
 extern "C" void run_query6(const Database &db);
 extern "C" void run_query_rollup_1(const Database &db);
 extern "C" void run_query_rollup_2(const Database &db);
+extern "C" void run_query_rollup_3(const Database &db);
 
 
 
@@ -124,6 +125,7 @@ int main(int argc, char* argv[]) {
 //	run_queries.push_back(run_query6);
 	run_queries.push_back(run_query_rollup_1);
 	run_queries.push_back(run_query_rollup_2);
+	run_queries.push_back(run_query_rollup_3);
 
 	vector<chrono::milliseconds> elapsed;
 	elapsed.resize(run_queries.size());
@@ -138,7 +140,7 @@ int main(int argc, char* argv[]) {
 	int n = 10;
 	ofstream devnull;
 	devnull.open("/dev/null");
-	{int i; cout << "..."; cin >> i; cout << endl;}
+//	{int i; cout << "..."; cin >> i; cout << endl;}
 	try {
 		if (n<=0) throw runtime_error("negative number of runs");
 		auto coutbuf = cout.rdbuf(devnull.rdbuf());
@@ -148,7 +150,11 @@ int main(int argc, char* argv[]) {
 					start = chrono::high_resolution_clock::now();
 					run_queries[cnt](db);
 					end = chrono::high_resolution_clock::now();
-					elapsed[cnt] += chrono::duration_cast<chrono::milliseconds>(end - start);
+					if (elapsed[cnt] != chrono::milliseconds::zero()) {
+						elapsed[cnt] = min(elapsed[cnt] ,chrono::duration_cast<chrono::milliseconds>(end - start));
+					} else {
+						elapsed[cnt] = chrono::duration_cast<chrono::milliseconds>(end - start);
+					}
 				}
 			}
 		}
@@ -156,7 +162,7 @@ int main(int argc, char* argv[]) {
 
 		for (size_t cnt = 0; cnt < run_queries.size(); ++cnt) {
 			if (run_queries[cnt] != run_query_dummy) {
-				cerr << cnt << ": " << elapsed[cnt].count() / n << "ms" << endl;
+				cerr << cnt << ": " << elapsed[cnt].count() << "ms" << endl;
 			}
 		}
 
@@ -164,7 +170,7 @@ int main(int argc, char* argv[]) {
 		cerr << e.what() << endl;
 		exit(1);
 	}
-	{int i; cout << "..."; cin >> i; cout << endl;}
+//	{int i; cout << "..."; cin >> i; cout << endl;}
 
 	devnull.close();
 	return 0;

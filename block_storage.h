@@ -68,7 +68,7 @@ public:
 	{
 		static_assert(block_bytes >= sizeof(T), "_block_size should be positive");
 		reset();
-		allocate_block();
+//		allocate_block();
 	}
 
 	~Block_Storage() { clear();}
@@ -85,14 +85,7 @@ public:
 	}
 
 
-	T* insert(T&& t) {
-		check_new_block();
-		_blocks[_last_block][_last_block_size] = t;
-		++_size;
-		return &_blocks[_last_block][_last_block_size++];
-	}
-
-	T* insert(const T& t) {
+	T* insert(T t) {
 		check_new_block();
 		_blocks[_last_block][_last_block_size] = t;
 		++_size;
@@ -141,6 +134,10 @@ private:
 				allocate_block();
 			}
 			_last_block_size = 0;
+		} else if (_blocks.size() == 0) {
+			allocate_block();
+			_last_block = 0;
 		}
+
 	}
 };
