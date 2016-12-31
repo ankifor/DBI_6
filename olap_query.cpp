@@ -5,7 +5,7 @@
 #include <tuple>
 
 #include "my_hash.h"
-#include "my_hash_D.h"
+//#include "my_hash_D.h"
 using namespace std;
 
 #define My_Hash_U(_Key, _Tp) My_Hash<_Key, _Tp, hash_types::hash<_Key>, equal_to<_Key>, true, UpdateVal>
@@ -73,9 +73,9 @@ struct UpdateVal {
 	}
 };
 
-void UpdateVal1(tuple<Numeric<2,0>>& left, const tuple<Numeric<2,0>>&  right) {
-	get<0>(left) += get<0>(right);
-}
+//void UpdateVal1(tuple<Numeric<2,0>>& left, const tuple<Numeric<2,0>>&  right) {
+//	get<0>(left) += get<0>(right);
+//}
 
 //bool predicat0(const Varchar<16> &c_last) { return c_last == "BARBARBAR"; }
 
@@ -829,131 +829,120 @@ struct myEq {
 	}
 };
 
-template<bool f1,bool f2,bool f3>
-bool My_Eq_1(const tuple<Integer,Integer,Integer>& left, const tuple<Integer,Integer,Integer>& right) {
-	return
-		   (!f1 || get<0>(left)==get<0>(right))
-		&& (!f2 || get<1>(left)==get<1>(right))
-		&& (!f3 || get<2>(left)==get<2>(right))
-	;
-}
+//template<bool f1,bool f2,bool f3>
+//bool My_Eq_1(const tuple<Integer,Integer,Integer>& left, const tuple<Integer,Integer,Integer>& right) {
+//	return
+//		   (!f1 || get<0>(left)==get<0>(right))
+//		&& (!f2 || get<1>(left)==get<1>(right))
+//		&& (!f3 || get<2>(left)==get<2>(right))
+//	;
+//}
 
-static void hash_combine1(size_t& seed, size_t val) {
-	seed ^= val + 0x9e3779b9 + (seed<<6) + (seed>>2);
-}
+//static void hash_combine1(size_t& seed, size_t val) {
+//	seed ^= val + 0x9e3779b9 + (seed<<6) + (seed>>2);
+//}
 
-template<bool f1,bool f2,bool f3>
-struct myHash {
-	size_t operator()(tuple<Integer,Integer,Integer>& key) {
-		size_t seed = 0;
-		if (f1) {
-			seed = get<0>(key).hash();
-			if (f2) hash_combine1(seed,get<1>(key).hash());
-			if (f3) hash_combine1(seed,get<2>(key).hash());
-		} else if (f2) {
-			seed = get<1>(key).hash();
-			if (f3) hash_combine1(seed,get<2>(key).hash());
-		} else if (f3) {
-			seed = get<2>(key).hash();
-		}
-		return seed;
-	}
-};
+//template<bool f1,bool f2,bool f3>
+//struct myHash {
+//	size_t operator()(tuple<Integer,Integer,Integer>& key) {
+//		size_t seed = 0;
+//		if (f1) hash_combine1(seed,get<0>(key).hash());
+//		if (f2) hash_combine1(seed,get<1>(key).hash());
+//		if (f3) hash_combine1(seed,get<2>(key).hash());
+//		return seed;
+//	}
+//};
 
-template<bool f1,bool f2,bool f3>
-size_t My_Hash_1(const tuple<Integer,Integer,Integer>& key) {
-	size_t seed = 0;
-	if (f1) {
-		seed = get<0>(key).hash();
-		if (f2) hash_combine1(seed,get<1>(key).hash());
-		if (f3) hash_combine1(seed,get<2>(key).hash());
-	} else if (f2) {
-		seed = get<1>(key).hash();
-		if (f3) hash_combine1(seed,get<2>(key).hash());
-	} else if (f3) {
-		seed = get<2>(key).hash();
-	}
-	return seed;
-}
+//template<bool f1,bool f2,bool f3>
+//size_t My_Hash_1(const tuple<Integer,Integer,Integer>& key) {
+//	size_t seed = 0;
+//	if (f1) {
+//		seed = get<0>(key).hash();
+//		if (f2) hash_combine1(seed,get<1>(key).hash());
+//		if (f3) hash_combine1(seed,get<2>(key).hash());
+//	} else if (f2) {
+//		seed = get<1>(key).hash();
+//		if (f3) hash_combine1(seed,get<2>(key).hash());
+//	} else if (f3) {
+//		seed = get<2>(key).hash();
+//	}
+//	return seed;
+//}
 
 
 //4 with same key
 extern "C" void run_query5(const Database &db) {
 	using type_val = tuple<Numeric<2,0>>;
 	using type_key = tuple<Integer,Integer,Integer>;
+	using h_111 = hash_types_1::hash<type_key, 7>;
+	using h_110 = hash_types_1::hash<type_key, 3>;
+	using h_101 = hash_types_1::hash<type_key, 5>;
+	using h_011 = hash_types_1::hash<type_key, 6>;
+	using h_100 = hash_types_1::hash<type_key, 1>;
+	using h_010 = hash_types_1::hash<type_key, 2>;
+	using h_001 = hash_types_1::hash<type_key, 4>;
 
-
-	My_Hash<type_key, type_val, myHash<true,true,true>  , myEq<true,true,true>  , true, UpdateVal> hash_111(nullptr);
-	My_Hash<type_key, type_val, myHash<true,true,false> , myEq<true,true,false> , true, UpdateVal> hash_110(nullptr);
-	My_Hash<type_key, type_val, myHash<true,false,true> , myEq<true,false,true> , true, UpdateVal> hash_101(nullptr);
-	My_Hash<type_key, type_val, myHash<false,true,true> , myEq<false,true,true> , true, UpdateVal> hash_011(nullptr);
-	My_Hash<type_key, type_val, myHash<true,false,false>, myEq<true,false,false>, true, UpdateVal> hash_100(nullptr);
-	My_Hash<type_key, type_val, myHash<false,true,false>, myEq<false,true,false>, true, UpdateVal> hash_010(nullptr);
-	My_Hash<type_key, type_val, myHash<false,false,true>, myEq<false,false,true>, true, UpdateVal> hash_001(nullptr);
+	My_Hash<type_key, type_val, h_111, myEq<true,true,true>  , true, UpdateVal> hash_111(nullptr);
+	My_Hash<type_key, type_val, h_110, myEq<true,true,false> , true, UpdateVal> hash_110(nullptr);
+	My_Hash<type_key, type_val, h_101, myEq<true,false,true> , true, UpdateVal> hash_101(nullptr);
+	My_Hash<type_key, type_val, h_011, myEq<false,true,true> , true, UpdateVal> hash_011(nullptr);
+	My_Hash<type_key, type_val, h_100, myEq<true,false,false>, true, UpdateVal> hash_100(nullptr);
+	My_Hash<type_key, type_val, h_010, myEq<false,true,false>, true, UpdateVal> hash_010(nullptr);
+	My_Hash<type_key, type_val, h_001, myEq<false,false,true>, true, UpdateVal> hash_001(nullptr);
 
 	type_val val_000;
 
-	//scan
+	//111
 	for (Tid tid0 = 0; tid0 < db.order.size(); ++tid0) {
 		hash_111.modify(
 			make_tuple(db.order.o_d_id[tid0],db.order.o_w_id[tid0],db.order.o_carrier_id[tid0])
 			, make_tuple(db.order.o_ol_cnt[tid0])
 		);
 	}
-
 	my_print_hash1<true,true,true>(hash_111._storage.get());
-
-	//construct hash_110 from hash_111
+	//110
 	for (auto it = hash_111._storage->begin(); it != hash_111._storage->end(); ++it) {
 		hash_110.modify(get<0>(*it), get<1>(*it));
 	}
-
-	//construct hash_101 from hash_111
+	my_print_hash1<true,true,false>(hash_110._storage.get());
+	//101
 	for (auto it = hash_111._storage->begin(); it != hash_111._storage->end(); ++it) {
 		hash_101.modify(get<0>(*it), get<1>(*it));
 	}
-
-	//construct hash_011 from hash_111
+	my_print_hash1<true,false,true>(hash_101._storage.get());
+	//011
 	for (auto it = hash_111._storage->begin(); it != hash_111._storage->end(); ++it) {
 		hash_011.modify(get<0>(*it), get<1>(*it));
 	}
+	my_print_hash1<false,true,true>(hash_011._storage.get());
+	hash_011.clear();
 	hash_111.clear();
 
-	my_print_hash1<true,true,false>(hash_110._storage.get());
-
-	//construct hash_100 from hash_110
+	//100
 	for (auto it = hash_110._storage->begin(); it != hash_110._storage->end(); ++it) {
 		hash_100.modify(get<0>(*it), get<1>(*it));
 	}
-
-	//construct hash_010 from hash_110
+	my_print_hash1<true,false,false>(hash_100._storage.get());
+	//010
 	for (auto it = hash_110._storage->begin(); it != hash_110._storage->end(); ++it) {
 		hash_010.modify(get<0>(*it), get<1>(*it));
 	}
+	my_print_hash1<false,true,false>(hash_010._storage.get());
+	hash_010.clear();
 	hash_110.clear();
-
-	my_print_hash1<true,false,true>(hash_101._storage.get());
-
-	//construct hash_001 from hash_101
+	//001
 	for (auto it = hash_101._storage->begin(); it != hash_101._storage->end(); ++it) {
 		hash_001.modify(get<0>(*it), get<1>(*it));
 	}
-
+	my_print_hash1<false,false,true>(hash_001._storage.get());
+	hash_001.clear();
 	hash_101.clear();
-	my_print_hash1<false,true,true>(hash_011._storage.get());
-	hash_011.clear();
-	my_print_hash1<true,false,false>(hash_100._storage.get());
 	//construct val_000 from hash_100
 	for (auto it = hash_100._storage->begin(); it != hash_100._storage->end(); ++it) {
 		update_val(val_000, get<1>(*it));
 	}
-	hash_100.clear();
-
-	my_print_hash1<false,true,false>(hash_010._storage.get());
-	hash_010.clear();
-	my_print_hash1<false,false,true>(hash_001._storage.get());
-	hash_001.clear();
 	my_print_hash<false,false,false>(&val_000);
+	hash_100.clear();
 }
 
 //with memory reusage
@@ -961,79 +950,70 @@ extern "C" void run_query6(const Database &db) {
 	using type_val = tuple<Numeric<2,0>>;
 	using type_key = tuple<Integer,Integer,Integer>;
 
+	using h_111 = hash_types_1::hash<type_key, 7>;
+	using h_110 = hash_types_1::hash<type_key, 3>;
+	using h_101 = hash_types_1::hash<type_key, 5>;
+	using h_011 = hash_types_1::hash<type_key, 6>;
+	using h_100 = hash_types_1::hash<type_key, 1>;
+	using h_010 = hash_types_1::hash<type_key, 2>;
+	using h_001 = hash_types_1::hash<type_key, 4>;
 
-	My_Hash<type_key, type_val, myHash<true,true,true>  , myEq<true,true,true>  , true, UpdateVal> hash_111(nullptr);
-	My_Hash<type_key, type_val, myHash<true,true,false> , myEq<true,true,false> , true, UpdateVal> hash_110(hash_111._storage);
-	My_Hash<type_key, type_val, myHash<true,false,true> , myEq<true,false,true> , true, UpdateVal> hash_101(nullptr);
-	My_Hash<type_key, type_val, myHash<false,true,true> , myEq<false,true,true> , true, UpdateVal> hash_011(nullptr);
-	My_Hash<type_key, type_val, myHash<true,false,false>, myEq<true,false,false>, true, UpdateVal> hash_100(hash_110._storage);
-	My_Hash<type_key, type_val, myHash<false,true,false>, myEq<false,true,false>, true, UpdateVal> hash_010(nullptr);
-	My_Hash<type_key, type_val, myHash<false,false,true>, myEq<false,false,true>, true, UpdateVal> hash_001(nullptr);
+	My_Hash<type_key, type_val, h_111, myEq<true,true,true>  , true, UpdateVal> hash_111(nullptr);
+	My_Hash<type_key, type_val, h_110, myEq<true,true,false> , true, UpdateVal> hash_110(hash_111._storage);
+	My_Hash<type_key, type_val, h_101, myEq<true,false,true> , true, UpdateVal> hash_101(nullptr);
+	My_Hash<type_key, type_val, h_011, myEq<false,true,true> , true, UpdateVal> hash_011(nullptr);
+	My_Hash<type_key, type_val, h_100, myEq<true,false,false>, true, UpdateVal> hash_100(hash_110._storage);
+	My_Hash<type_key, type_val, h_010, myEq<false,true,false>, true, UpdateVal> hash_010(nullptr);
+	My_Hash<type_key, type_val, h_001, myEq<false,false,true>, true, UpdateVal> hash_001(nullptr);
 
 	type_val val_000;
 
-	//scan
+	//111
 	for (Tid tid0 = 0; tid0 < db.order.size(); ++tid0) {
 		hash_111.modify(
 			make_tuple(db.order.o_d_id[tid0],db.order.o_w_id[tid0],db.order.o_carrier_id[tid0])
 			, make_tuple(db.order.o_ol_cnt[tid0])
 		);
 	}
-
 	my_print_hash1<true,true,true>(hash_111._storage.get());
-
-	//construct hash_110 from hash_111
-	hash_110.build_from_storage<true>();
-//	for (auto it = hash_111._storage->begin(); it != hash_111._storage->end(); ++it) {
-//		hash_110.modify(get<0>(*it), get<1>(*it));
-//	}
-
-	//construct hash_101 from hash_111
+	//101
 	for (auto it = hash_111._storage->begin(); it != hash_111._storage->end(); ++it) {
 		hash_101.modify(get<0>(*it), get<1>(*it));
 	}
-
-	//construct hash_011 from hash_111
+	my_print_hash1<true,false,true>(hash_101._storage.get());
+	//011
 	for (auto it = hash_111._storage->begin(); it != hash_111._storage->end(); ++it) {
 		hash_011.modify(get<0>(*it), get<1>(*it));
 	}
-	hash_111.clear();
+	my_print_hash1<false,true,true>(hash_011._storage.get());
+	hash_011.clear();
 
+	//110
+	hash_110.build_from_storage<true>();
 	my_print_hash1<true,true,false>(hash_110._storage.get());
-
-	//construct hash_100 from hash_110
-	hash_100.build_from_storage<true>();
-//	for (auto it = hash_110._storage->begin(); it != hash_110._storage->end(); ++it) {
-//		hash_100.modify(get<0>(*it), get<1>(*it));
-//	}
-
-	//construct hash_010 from hash_110
-	for (auto it = hash_110._storage->begin(); it != hash_110._storage->end(); ++it) {
-		hash_010.modify(get<0>(*it), get<1>(*it));
-	}
-	hash_110.clear();
-
-	my_print_hash1<true,false,true>(hash_101._storage.get());
-
-	//construct hash_001 from hash_101
+	hash_111.clear();
+	//001
 	for (auto it = hash_101._storage->begin(); it != hash_101._storage->end(); ++it) {
 		hash_001.modify(get<0>(*it), get<1>(*it));
 	}
-
+	my_print_hash1<false,false,true>(hash_001._storage.get());
+	hash_001.clear();
 	hash_101.clear();
-	my_print_hash1<false,true,true>(hash_011._storage.get());
-	hash_011.clear();
+	//010
+	for (auto it = hash_110._storage->begin(); it != hash_110._storage->end(); ++it) {
+		hash_010.modify(get<0>(*it), get<1>(*it));
+	}
+	my_print_hash1<false,true,false>(hash_010._storage.get());
+	hash_010.clear();
+	hash_110.clear();
+	//100
+	hash_100.build_from_storage<true>();
 	my_print_hash1<true,false,false>(hash_100._storage.get());
 	//construct val_000 from hash_100
 	for (auto it = hash_100._storage->begin(); it != hash_100._storage->end(); ++it) {
 		update_val(val_000, get<1>(*it));
 	}
 	hash_100.clear();
-
-	my_print_hash1<false,true,false>(hash_010._storage.get());
-	hash_010.clear();
-	my_print_hash1<false,false,true>(hash_001._storage.get());
-	hash_001.clear();
 	my_print_hash<false,false,false>(&val_000);
 }
 
@@ -1099,10 +1079,13 @@ extern "C" void run_query_rollup_2(const Database &db) {
 	using type_val = tuple<Numeric<2,0>>;
 	using type_key = tuple<Integer,Integer,Integer>;
 
+	using h_111 = hash_types_1::hash<type_key, 7>;
+	using h_110 = hash_types_1::hash<type_key, 3>;
+	using h_100 = hash_types_1::hash<type_key, 1>;
 
-	My_Hash<type_key, type_val, myHash<true,true,true>  , myEq<true,true,true>  , true, UpdateVal> hash_111(nullptr);
-	My_Hash<type_key, type_val, myHash<true,true,false> , myEq<true,true,false> , true, UpdateVal> hash_110(hash_111._storage);//
-	My_Hash<type_key, type_val, myHash<true,false,false>, myEq<true,false,false>, true, UpdateVal> hash_100(hash_110._storage);//
+	My_Hash<type_key, type_val, h_111 , myEq<true,true,true>  , true, UpdateVal> hash_111(nullptr);
+	My_Hash<type_key, type_val, h_110 , myEq<true,true,false> , true, UpdateVal> hash_110(hash_111._storage);//
+	My_Hash<type_key, type_val, h_100 , myEq<true,false,false>, true, UpdateVal> hash_100(hash_110._storage);//
 
 	type_val val_000;
 
@@ -1131,3 +1114,60 @@ extern "C" void run_query_rollup_2(const Database &db) {
 
 	my_print_hash<false,false,false>(&val_000);
 }
+
+//extern "C" void run_query_rollup_3(const Database &db) {
+//	using type_val = tuple<Numeric<2,0>>;
+//	using type_key = tuple<Integer,Integer,Integer>;
+//	using type_hash = My_Hash_D<type_key, type_val, true>;
+//
+//	type_hash hash_111;
+//	type_hash hash_110;
+//	type_hash hash_100;
+//	hash_111
+//		.set_eq(My_Eq_1<true,true,true>)
+//		.set_upd(UpdateVal1)
+//		.set_hash(My_Hash_1<true,true,true>)
+//		.set_storage(type_hash::Storage_Ptr(new type_hash::Storage))
+//		;
+//
+//	hash_110
+//		.set_eq(My_Eq_1<true,true,false>)
+//		.set_upd(UpdateVal1)
+//		.set_hash(My_Hash_1<true,true,false>)
+//		.set_storage(hash_111.get_storage())
+//		;
+//
+//	hash_100
+//		.set_eq(My_Eq_1<true,false,false>)
+//		.set_upd(UpdateVal1)
+//		.set_hash(My_Hash_1<true,false,false>)
+//		.set_storage(hash_110.get_storage())
+//		;
+//
+//	type_val val_000;
+//
+//	//scan
+//	for (Tid tid0 = 0; tid0 < db.order.size(); ++tid0) {
+//		hash_111.modify(
+//			make_tuple(db.order.o_d_id[tid0],db.order.o_w_id[tid0],db.order.o_carrier_id[tid0])
+//			, make_tuple(db.order.o_ol_cnt[tid0])
+//		);
+//	}
+//
+//	my_print_hash1<true,true,true>(hash_111.get_storage().get());
+//
+//	hash_110.build_from_storage<true>();
+//	hash_111.clear();
+//
+//	my_print_hash1<true,true,false>(hash_110.get_storage().get());
+//
+//	hash_100.build_from_storage<true>();
+//	my_print_hash1<true,false,false>(hash_100.get_storage().get());
+//	//construct val_000 from hash_100
+//	for (auto it = hash_100.get_storage()->begin(); it != hash_100.get_storage()->end(); ++it) {
+//		update_val(val_000, get<1>(*it));
+//	}
+//	hash_100.clear();
+//
+//	my_print_hash<false,false,false>(&val_000);
+//}

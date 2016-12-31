@@ -594,6 +594,50 @@ namespace hash_types {
 
 }
 
+namespace hash_types_1 {
+	template <typename TT, uint32_t mask>
+	struct hash {
+		size_t operator()(TT const& tt) const {
+			return tt.hash();
+		}
+	};
+
+	namespace {
+		template <class T>
+		inline void hash_combine(std::size_t& seed, T const& v) {
+			seed ^= hash_types::hash<T>()(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+		}
+        // Recursive template code derived from Matthieu M.
+        template <class Tuple, size_t Index, uint32_t mask>
+        struct HashValueImpl {
+			static void apply(size_t& seed, Tuple const& tuple) {
+				HashValueImpl<Tuple, Index-1, mask>::apply(seed, tuple);
+				if ((mask & (1 << Index)) != 0)
+					hash_combine(seed, std::get<Index>(tuple));
+			}
+        };
+
+        template <class Tuple, uint32_t mask>
+        struct HashValueImpl<Tuple,0, mask>
+        {
+          static void apply(size_t& seed, Tuple const& tuple)
+          {
+        	  if ((mask & 1) != 0)
+        		  hash_combine(seed, std::get<0>(tuple));
+          }
+        };
+    }
+
+    template <typename ... TT, uint32_t mask>
+    struct hash<std::tuple<TT...>, mask> {
+        size_t operator()(std::tuple<TT...> const& tt) const {
+            size_t seed = 0;
+            HashValueImpl<std::tuple<TT...>, sizeof...(TT)-1, mask>::apply(seed, tt);
+            return seed;
+        }
+    };
+
+}
 
 // out << tuple
 namespace aux {

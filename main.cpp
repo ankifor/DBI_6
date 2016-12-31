@@ -28,7 +28,6 @@ extern "C" void run_query5(const Database &db);
 extern "C" void run_query6(const Database &db);
 extern "C" void run_query_rollup_1(const Database &db);
 extern "C" void run_query_rollup_2(const Database &db);
-extern "C" void run_query_rollup_3(const Database &db);
 
 
 
@@ -121,11 +120,10 @@ int main(int argc, char* argv[]) {
 //	run_queries.push_back(run_query2);
 //	run_queries.push_back(run_query_dummy);
 //	run_queries.push_back(run_query4);
-//	run_queries.push_back(run_query5);
-//	run_queries.push_back(run_query6);
-	run_queries.push_back(run_query_rollup_1);
-	run_queries.push_back(run_query_rollup_2);
-	run_queries.push_back(run_query_rollup_3);
+	run_queries.push_back(run_query5);
+	run_queries.push_back(run_query6);
+//	run_queries.push_back(run_query_rollup_1);
+//	run_queries.push_back(run_query_rollup_2);
 
 	vector<chrono::milliseconds> elapsed;
 	elapsed.resize(run_queries.size());
@@ -150,6 +148,7 @@ int main(int argc, char* argv[]) {
 					start = chrono::high_resolution_clock::now();
 					run_queries[cnt](db);
 					end = chrono::high_resolution_clock::now();
+					cout.flush();
 					if (elapsed[cnt] != chrono::milliseconds::zero()) {
 						elapsed[cnt] = min(elapsed[cnt] ,chrono::duration_cast<chrono::milliseconds>(end - start));
 					} else {
