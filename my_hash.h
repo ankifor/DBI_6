@@ -160,7 +160,7 @@ public:
 	void build_from_storage() {
 		static_assert(_Unique || !with_update, "_Unique=false and with_update=true are incompatible");
 		size_t sz = size_t(double(_storage->size()) / _target_load_factor() );
-		size_t tmp = __builtin_ctz(sz);
+		size_t tmp = sizeof(sz)*8 - __builtin_clzl(sz);
 
 		rehash<with_update>(tmp);
 	}

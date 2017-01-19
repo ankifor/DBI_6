@@ -18,7 +18,6 @@ using namespace std;
 
 using query_fun = void (*)(const Database &db);
 
-static void run_query_dummy(const Database &db) {}
 extern "C" void run_query0(const Database &db);
 extern "C" void run_query1(const Database &db);
 extern "C" void run_query2(const Database &db);
@@ -107,23 +106,33 @@ int main(int argc, char* argv[]) {
 
 //	cout << "reading db from '" << path_data << "'..." << endl;
 //	read_data(path_data);
-	cout << "populating db..." << endl;
-	populate_order(stol(argv[1]), stol(argv[2]), stol(argv[3]), stol(argv[4]));
+	long db_count = stol(argv[1]);
+	long db_field1 = stol(argv[2]);
+	long db_field2 = stol(argv[3]);
+	long db_field3 = stol(argv[4]);
+	populate_order(db_count, db_field1, db_field2, db_field3);
+	string run_info;
 
-	cerr << "db.order: " << db.order.size() << endl;
+	{
+		stringstream tmp;
+		tmp << db_count << "," << db_field1 << "," << db_field2 << "," << db_field3;
+		run_info = tmp.str();
+	}
+
+	cerr << "input: " << run_info << endl;
 
 	ofstream out;
 
-	vector<query_fun> run_queries;
-//	run_queries.push_back(run_query_dummy);
-//	run_queries.push_back(run_query_dummy);
-//	run_queries.push_back(run_query2);
-//	run_queries.push_back(run_query_dummy);
-//	run_queries.push_back(run_query4);
-	run_queries.push_back(run_query5);
-	run_queries.push_back(run_query6);
-//	run_queries.push_back(run_query_rollup_1);
-//	run_queries.push_back(run_query_rollup_2);
+	vector<pair<query_fun,string>> run_queries;
+//	run_queries.push_back({run_query0,""});
+//	run_queries.push_back({run_query1,""});
+	run_queries.push_back({run_query2,"cube_unordMap"});
+	run_queries.push_back({run_query3,"cube_unordMap_union"});
+	run_queries.push_back({run_query4,"cube_myHash"});
+	run_queries.push_back({run_query5,"cube_myHash_sameKey"});
+	run_queries.push_back({run_query6,"cube_myHash_reusage"});
+	run_queries.push_back({run_query_rollup_1,"rollup_myHash"});
+	run_queries.push_back({run_query_rollup_2,"rollup_myHash_reusage"});
 
 	vector<chrono::milliseconds> elapsed;
 	elapsed.resize(run_queries.size());
@@ -135,7 +144,7 @@ int main(int argc, char* argv[]) {
 		x = chrono::milliseconds::zero();
 	}
 
-	int n = 10;
+	int n = 3;
 	ofstream devnull;
 	devnull.open("/dev/null");
 //	{int i; cout << "..."; cin >> i; cout << endl;}
@@ -144,25 +153,24 @@ int main(int argc, char* argv[]) {
 		auto coutbuf = cout.rdbuf(devnull.rdbuf());
 		for (int i=0;i<n;++i) {
 			for (size_t cnt = 0; cnt < run_queries.size(); ++cnt) {
-				if (run_queries[cnt] != run_query_dummy) {
-					start = chrono::high_resolution_clock::now();
-					run_queries[cnt](db);
-					end = chrono::high_resolution_clock::now();
-					cout.flush();
-					if (elapsed[cnt] != chrono::milliseconds::zero()) {
-						elapsed[cnt] = min(elapsed[cnt] ,chrono::duration_cast<chrono::milliseconds>(end - start));
-					} else {
-						elapsed[cnt] = chrono::duration_cast<chrono::milliseconds>(end - start);
-					}
+				start = chrono::high_resolution_clock::now();
+				run_queries[cnt].first(db);
+				end = chrono::high_resolution_clock::now();
+				cout.flush();
+				if (elapsed[cnt] != chrono::milliseconds::zero()) {
+					elapsed[cnt] = min(elapsed[cnt] ,chrono::duration_cast<chrono::milliseconds>(end - start));
+				} else {
+					elapsed[cnt] = chrono::duration_cast<chrono::milliseconds>(end - start);
 				}
 			}
 		}
 		cout.rdbuf(coutbuf);
 
 		for (size_t cnt = 0; cnt < run_queries.size(); ++cnt) {
-			if (run_queries[cnt] != run_query_dummy) {
-				cerr << cnt << ": " << elapsed[cnt].count() << "ms" << endl;
-			}
+			cout
+				<< run_info << ","
+				<< run_queries[cnt].second << ","
+				<< elapsed[cnt].count() << endl;
 		}
 
 	} catch (runtime_error& e) {

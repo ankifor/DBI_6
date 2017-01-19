@@ -1084,8 +1084,8 @@ extern "C" void run_query_rollup_2(const Database &db) {
 	using h_100 = hash_types_1::hash<type_key, 1>;
 
 	My_Hash<type_key, type_val, h_111 , myEq<true,true,true>  , true, UpdateVal> hash_111(nullptr);
-	My_Hash<type_key, type_val, h_110 , myEq<true,true,false> , true, UpdateVal> hash_110(hash_111._storage);//
-	My_Hash<type_key, type_val, h_100 , myEq<true,false,false>, true, UpdateVal> hash_100(hash_110._storage);//
+	My_Hash<type_key, type_val, h_110 , myEq<true,true,false> , true, UpdateVal> hash_110(hash_111._storage);
+	My_Hash<type_key, type_val, h_100 , myEq<true,false,false>, true, UpdateVal> hash_100(hash_110._storage);
 
 	type_val val_000;
 
