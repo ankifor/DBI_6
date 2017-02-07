@@ -106,3 +106,6 @@ namespace CHECK
     enum { value = !std::is_same<decltype(*(T*)(0) == *(Arg*)(0)), No>::value };
   };  
 }
+
+
+extern size_t log2(size_t x);

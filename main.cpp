@@ -25,6 +25,7 @@ extern "C" void run_query3(const Database &db);
 extern "C" void run_query4(const Database &db);
 extern "C" void run_query5(const Database &db);
 extern "C" void run_query6(const Database &db);
+extern "C" void run_query7(const Database &db);
 extern "C" void run_query_rollup_1(const Database &db);
 extern "C" void run_query_rollup_2(const Database &db);
 
@@ -126,13 +127,14 @@ int main(int argc, char* argv[]) {
 	vector<pair<query_fun,string>> run_queries;
 //	run_queries.push_back({run_query0,""});
 //	run_queries.push_back({run_query1,""});
-	run_queries.push_back({run_query2,"cube_unordMap"});
-	run_queries.push_back({run_query3,"cube_unordMap_union"});
-	run_queries.push_back({run_query4,"cube_myHash"});
-	run_queries.push_back({run_query5,"cube_myHash_sameKey"});
+//	run_queries.push_back({run_query2,"cube_unordMap"});
+//	run_queries.push_back({run_query3,"cube_unordMap_union"});
+//	run_queries.push_back({run_query4,"cube_myHash"});
+//	run_queries.push_back({run_query5,"cube_myHash_sameKey"});
 	run_queries.push_back({run_query6,"cube_myHash_reusage"});
-	run_queries.push_back({run_query_rollup_1,"rollup_myHash"});
-	run_queries.push_back({run_query_rollup_2,"rollup_myHash_reusage"});
+	run_queries.push_back({run_query7,"cube_myHash_reusage_depth"});
+//	run_queries.push_back({run_query_rollup_1,"rollup_myHash"});
+//	run_queries.push_back({run_query_rollup_2,"rollup_myHash_reusage"});
 
 	vector<chrono::milliseconds> elapsed;
 	elapsed.resize(run_queries.size());

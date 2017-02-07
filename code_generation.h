@@ -159,6 +159,51 @@ protected:
 };
 
 
+struct OperatorGroupingSet : public OperatorUnary {
+	OperatorGroupingSet(const Context* context, stringstream& out
+			, const vector<Field_Unit>& key_fields
+			, const vector<size_t>& key_groups
+			, const vector<Field_Unit>& val_fields)
+		: OperatorUnary(context,out)
+		{
+			this->key_fields = key_fields;
+			this->key_groups = key_groups;
+			this->val_fields = val_fields;
+			root_group_index = 0;
+			print_root = false;
+		}
+
+	void consume(const Operator* caller);
+	void produce();
+
+protected:
+	void computeRequired();
+	void computeProduced() {fields = input->getProduced();}
+
+private:
+	void computeGroupsGraph();
+	void defineTypeKey();
+	void defineTypeVal();
+	void defineTypeUpdate();
+	void defineHashTable(size_t group_index, const string& storage);
+	void printHashTable(size_t group_index);
+	void clearHashTable(size_t group_index);
+
+	size_t root_group_index;
+	unordered_multimap<size_t, size_t> groupsGraph;//contains indices of groups within key_groups
+
+	bool print_root;
+	string type_key;
+	string type_val;
+	string update_val;
+	string update_val_instance;
+	vector<string> hash_table_group_names;
+
+	vector<Field_Unit> key_fields;
+	vector<size_t> key_groups;//binary masks
+	vector<Field_Unit> val_fields;
+};
+
 //==============================================================================
 // Binary Operators
 //==============================================================================

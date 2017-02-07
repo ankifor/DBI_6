@@ -3,6 +3,7 @@
 #include <tuple>
 #include <vector>
 #include <memory>
+#include "Help.hpp"
 #include "block_storage.h"
 
 template<typename _Tp>
@@ -160,8 +161,8 @@ public:
 	void build_from_storage() {
 		static_assert(_Unique || !with_update, "_Unique=false and with_update=true are incompatible");
 		size_t sz = size_t(double(_storage->size()) / _target_load_factor() );
-		size_t tmp = sizeof(sz)*8 - __builtin_clzl(sz);
-
+		//size_t tmp = sizeof(sz)*8 - __builtin_clzl(sz);
+		size_t tmp = log2(sz);
 		rehash<with_update>(tmp);
 	}
 

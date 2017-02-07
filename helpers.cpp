@@ -18,3 +18,7 @@ void ReplaceStringInPlace(string& subject, const string& search, const string& r
          pos += replace.length();
     }
 }
+
+size_t log2(size_t x) {
+	return sizeof(x)*8 - __builtin_clzl(x);
+}

@@ -639,6 +639,8 @@ namespace hash_types_1 {
 
 }
 
+
+
 // out << tuple
 namespace aux {
 	template<std::size_t...> struct seq{};
