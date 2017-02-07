@@ -224,7 +224,7 @@ void OperatorGroupingSet::produce() {
 	//reserve names
 	hash_table_group_names.clear();
 	for (size_t group : key_groups) {
-		hash_table_group_names.push_back(name_generator.request_name("hash_table_" + group,false));
+		hash_table_group_names.push_back(name_generator.request_name("hash_table_" +  to_string(group),false));
 	}
 
 	defineTypeKey();
@@ -246,7 +246,7 @@ void OperatorGroupingSet::produce() {
 	//breadth-first traversal >= n-2.
 
 	traversal.push_back({root_group_index, true, 0});
-
+	vector<size_t> children;
 
 	while (!traversal.empty()) {
 		Node current = traversal.back();
@@ -269,7 +269,7 @@ void OperatorGroupingSet::produce() {
 			}
 			defineHashTable(group_ind, storage);
 
-			if (current.last_child) {
+			if (memory_reusage) {
 				//last child frees the parent's memory immediately after sharing the storage
 				clearHashTable(current.parent_ind);
 			}
@@ -278,38 +278,46 @@ void OperatorGroupingSet::produce() {
 				out << "for (const auto& it: *" << hash_table_group_names[current.parent_ind] << "._storage){";
 				if (group != 0) {
 					//hash_4.modify(get<0>(it), get<1>(it));
-					out << hash_table_group_names[group_ind] << ".modify(get<0>(it), get<1>(it))";
+					out << hash_table_group_names[group_ind] << ".modify(get<0>(it), get<1>(it));";
 				} else {
 					//upd(hash_0, get<1>(it));
 					out << update_val_instance << "(" << hash_table_group_names[group_ind] << ",get<1>(it));";
 				}
 				out << "}";
+				if (group == 0 && current.last_child) {
+					clearHashTable(current.parent_ind);
+				}
+
+
 			} else {
 				//hash_6.build_from_storage<true>();
-				out << hash_table_group_names[group_ind] << "build_from_storage<true>();";
+				out << hash_table_group_names[group_ind] << ".build_from_storage<true>();";
 			}
 
 			printHashTable(group_ind);
 		}
 		//add children to traversal
-		auto it = groupsGraph.equal_range(group_ind);
-		bool any_children = (it.first != it.second);
-		while (it.first != it.second) {
-			size_t child_group_ind = it.first->second;
-			bool last_child = (distance(it.first, it.second) <= 1);
-			traversal.push_back({child_group_ind,last_child,group_ind});
-			++it.first;
+		children.clear();
+		for (auto it = groupsGraph.equal_range(group_ind); it.first != it.second; ++it.first) {
+			children.push_back(it.first->second);
 		}
 		//no children => we should free memory
-		if (!any_children) {
+		if (children.size() == 0) {
 			clearHashTable(group_ind);
+		} else {
+			sort(children.begin(), children.end());//[](size_t left, size_t right){return left > right;}
+			traversal.push_back({children[0],true,group_ind});
+			for (size_t i = 1; i < children.size(); ++i) {
+				traversal.push_back({children[i],false,group_ind});
+			}
+
 		}
 	}
 
 }
 
 void OperatorGroupingSet::defineTypeKey() {
-	type_key = name_generator.request_name("type_key", true);
+	type_key = name_generator.request_name("type_key", false);
 
 	out << "using " << type_key << "=tuple<";
 	string delim = "";
@@ -323,13 +331,13 @@ void OperatorGroupingSet::defineTypeKey() {
 }
 
 void OperatorGroupingSet::defineTypeVal() {
-	type_val = name_generator.request_name("type_val", true);
+	type_val = name_generator.request_name("type_val", false);
 
 	out << "using " << type_val << "=tuple<";
 	string delim = "";
 	for (const auto& f : val_fields) {
 		auto it = find(fields.begin(),fields.end(),f);
-		out << delim << f.type_name;
+		out << delim << it->type_name;
 		delim = ",";
 	}
 	out << ">;";
@@ -341,7 +349,7 @@ void OperatorGroupingSet::defineTypeUpdate() {
 
 	out << "struct " << update_val
 		<< "{"
-		<< "void operator(" << type_val << "& left" << ", const " << type_val << "& right) {";
+		<< "void operator()(" << type_val << "& left" << ", const " << type_val << "& right) {";
 	//only addition
 	for (size_t i = 0; i < val_fields.size(); ++i) {
 		out << "get<" << i << ">(left) += get<" << i << ">(right);";
@@ -369,22 +377,28 @@ void OperatorGroupingSet::defineHashTable(size_t group_index, const string& stor
 		//			return res;
 		//		}
 		//	};
-		string struct_equal = name_generator.request_name("Eq_"+group, false);
+		string struct_equal = name_generator.request_name("Eq_" + to_string(group), false);
 		out << "struct " << struct_equal
 			<< "{"
-			<< "bool operator(" << type_key << "& left" << ", " << type_key << "& right) {bool res = true;";
+			<< "bool operator()(" << type_key << "& left" << ", " << type_key << "& right) {return ";
 
-		for (size_t i = 0; i < key_fields.size(); ++i) {
-			if ((group >> i)&1) {
-				out << "res &&= (get<" << i << ">(left) == get<" << i << ">(right));";
+		if (group == 0) {
+			out << "true;";
+		} else {
+			string delim = "";
+			for (size_t i = 0; i < key_fields.size(); ++i) {
+				if (bitSet(group,i)) {
+					out << delim << "(get<" << i << ">(left) == get<" << i << ">(right))";
+					delim = " && ";
+				}
 			}
 		}
-		out	<< "return res;}"
+		out	<< ";}"
 			<< "};";
 
 		//hash
 		//using h_111 = hash_types_1::hash<type_key, 7>;
-		string hash_type = name_generator.request_name("Hash_"+group, false);
+		string hash_type = name_generator.request_name("Hash_" + to_string(group), false);
 		out << "using " << hash_type << "=hash_types_1::hash<" << type_key << "," << group << ">;";
 
 		//define hash_table
@@ -409,13 +423,11 @@ void OperatorGroupingSet::defineHashTable(size_t group_index, const string& stor
 void OperatorGroupingSet::printHashTable(size_t group_index) {
 	size_t group = key_groups[group_index];
 
-	string null_token = "\"null\"";
-	string comma_token = "\",\"";
+	const string null_token = "\"null\"";
+	const string comma_token = "\",\"";
 
 	string key_token;
 	string val_token;
-	string delim = "<<" + comma_token + "<<";
-
 
 	if (group != 0) {
 		//	for (const auto& it : *hash_1._storage) {
@@ -431,21 +443,23 @@ void OperatorGroupingSet::printHashTable(size_t group_index) {
 		key_token = "";
 		val_token = hash_table_group_names[group_index];
 	}
+
 	out << "{cout<<";
 	//print key
+	string delim = "";
 	for (size_t i = 0; i < key_fields.size(); ++i) {
-		if (i > 0) {
-			out << delim;
-		}
+		out << delim;
 		if (bitSet(group, i)) {
-			out << "get<i>(" << key_token << ")";
+			out << "get<" << i << ">(" << key_token << ")";
 		} else {
 			out << null_token;
 		}
+		delim = "<<" + comma_token + "<<";
 	}
 	//print value
 	for (size_t i = 0; i < val_fields.size(); ++i) {
-		out << delim << "get<i>(" << val_token << ")";
+		out << delim  << "get<" << i << ">(" << val_token << ")";
+		delim = "<<" + comma_token + "<<";
 	}
 	//print end line
 	out << "<<endl;}";
@@ -466,18 +480,23 @@ void OperatorGroupingSet::consume(const Operator* caller) {
 	string delim = "";
 	auto& produced = input->getProduced();
 
-	out << hash_table_group_names[root_group_index] << ".modify(";
-	{
-		out << "make_tuple(";
-		delim = "";
-		for (const auto& f : key_fields) {
-			auto it = find(produced.begin(),produced.end(),f);
-			out << delim << it->token;
-			delim = ",";
+	size_t group = key_groups[root_group_index];
+	if (group != 0) {
+		out << hash_table_group_names[root_group_index] << ".modify(";
+		{
+			out << "make_tuple(";
+			delim = "";
+			for (const auto& f : key_fields) {
+				auto it = find(produced.begin(),produced.end(),f);
+				out << delim << it->token;
+				delim = ",";
+			}
+			out << ")";
 		}
-		out << ")";
+		out << ",";
+	} else {
+		out << update_val_instance << "(" << hash_table_group_names[root_group_index] << ",";
 	}
-	out << ",";
 	{
 		out << "make_tuple(";
 		delim = "";
@@ -532,7 +551,7 @@ void OperatorGroupingSet::computeGroupsGraph() {
 			size_t j = i + 1;
 			//find first j, s.t. key_groups[i] is subset of key_groups[j]
 			//binary: x subset of y <=> y | ~x
-			while( j < key_groups.size() && subsetOf(key_groups[i],key_groups[j])) {
+			while( j < key_groups.size() && !subsetOf(key_groups[i],key_groups[j])) {
 				++j;
 			}
 			assert(j < key_groups.size());

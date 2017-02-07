@@ -1263,3 +1263,151 @@ extern "C" void run_query_rollup_2(const Database &db) {
 //
 //	my_print_hash<false,false,false>(&val_000);
 //}
+
+#include "Types.hpp"
+#include "schema_1.hpp"
+#include "my_hash.h"
+#include <iostream>
+#include <unordered_map>
+#include <tuple>
+using namespace std;
+extern "C" void olap_query_001(const Database &db) {
+  using type_key = tuple<Integer, Integer, Integer>;
+  using type_val = tuple<Numeric<2, 0>>;
+  struct Update_Val0 {
+    void operator()(type_val &left, const type_val &right) {
+      get<0>(left) += get<0>(right);
+    }
+  } update_val0;
+  struct Eq_7 {
+    bool operator()(type_key &left, type_key &right) {
+      return (get<0>(left) == get<0>(right)) &&
+             (get<1>(left) == get<1>(right)) && (get<2>(left) == get<2>(right));
+    }
+  };
+  using Hash_7 = hash_types_1::hash<type_key, 7>;
+  My_Hash<type_key, type_val, Hash_7, Eq_7, true, Update_Val0> hash_table_7(
+      nullptr);
+  for (Tid tid0 = 0; tid0 < db.order.size(); ++tid0) {
+    hash_table_7.modify(make_tuple(db.order.o_d_id[tid0], db.order.o_w_id[tid0],
+                                   db.order.o_carrier_id[tid0]),
+                        make_tuple(db.order.o_ol_cnt[tid0]));
+  }
+  for (const auto &it : *hash_table_7._storage) {
+    cout << get<0>(get<0>(it)) << "," << get<1>(get<0>(it)) << ","
+         << get<2>(get<0>(it)) << "," << get<0>(get<1>(it)) << endl;
+  }
+  struct Eq_6 {
+    bool operator()(type_key &left, type_key &right) {
+      return (get<1>(left) == get<1>(right)) && (get<2>(left) == get<2>(right));
+    }
+  };
+  using Hash_6 = hash_types_1::hash<type_key, 6>;
+  My_Hash<type_key, type_val, Hash_6, Eq_6, true, Update_Val0> hash_table_6(
+      nullptr);
+  for (const auto &it : *hash_table_7._storage) {
+    hash_table_6.modify(get<0>(it), get<1>(it));
+  }
+  for (const auto &it : *hash_table_6._storage) {
+    cout << "null"
+         << "," << get<1>(get<0>(it)) << "," << get<2>(get<0>(it)) << ","
+         << get<0>(get<1>(it)) << endl;
+  }
+  hash_table_6.clear();
+  struct Eq_5 {
+    bool operator()(type_key &left, type_key &right) {
+      return (get<0>(left) == get<0>(right)) && (get<2>(left) == get<2>(right));
+    }
+  };
+  using Hash_5 = hash_types_1::hash<type_key, 5>;
+  My_Hash<type_key, type_val, Hash_5, Eq_5, true, Update_Val0> hash_table_5(
+      nullptr);
+  for (const auto &it : *hash_table_7._storage) {
+    hash_table_5.modify(get<0>(it), get<1>(it));
+  }
+  for (const auto &it : *hash_table_5._storage) {
+    cout << get<0>(get<0>(it)) << ","
+         << "null"
+         << "," << get<2>(get<0>(it)) << "," << get<0>(get<1>(it)) << endl;
+  }
+  struct Eq_4 {
+    bool operator()(type_key &left, type_key &right) {
+      return (get<2>(left) == get<2>(right));
+    }
+  };
+  using Hash_4 = hash_types_1::hash<type_key, 4>;
+  My_Hash<type_key, type_val, Hash_4, Eq_4, true, Update_Val0> hash_table_4(
+      hash_table_5._storage);
+  hash_table_5.clear();
+  hash_table_4.build_from_storage<true>();
+  for (const auto &it : *hash_table_4._storage) {
+    cout << "null"
+         << ","
+         << "null"
+         << "," << get<2>(get<0>(it)) << "," << get<0>(get<1>(it)) << endl;
+  }
+  hash_table_4.clear();
+  struct Eq_3 {
+    bool operator()(type_key &left, type_key &right) {
+      return (get<0>(left) == get<0>(right)) && (get<1>(left) == get<1>(right));
+    }
+  };
+  using Hash_3 = hash_types_1::hash<type_key, 3>;
+  My_Hash<type_key, type_val, Hash_3, Eq_3, true, Update_Val0> hash_table_3(
+      hash_table_7._storage);
+  hash_table_7.clear();
+  hash_table_3.build_from_storage<true>();
+  for (const auto &it : *hash_table_3._storage) {
+    cout << get<0>(get<0>(it)) << "," << get<1>(get<0>(it)) << ","
+         << "null"
+         << "," << get<0>(get<1>(it)) << endl;
+  }
+  struct Eq_2 {
+    bool operator()(type_key &left, type_key &right) {
+      return (get<1>(left) == get<1>(right));
+    }
+  };
+  using Hash_2 = hash_types_1::hash<type_key, 2>;
+  My_Hash<type_key, type_val, Hash_2, Eq_2, true, Update_Val0> hash_table_2(
+      nullptr);
+  for (const auto &it : *hash_table_3._storage) {
+    hash_table_2.modify(get<0>(it), get<1>(it));
+  }
+  for (const auto &it : *hash_table_2._storage) {
+    cout << "null"
+         << "," << get<1>(get<0>(it)) << ","
+         << "null"
+         << "," << get<0>(get<1>(it)) << endl;
+  }
+  hash_table_2.clear();
+  struct Eq_1 {
+    bool operator()(type_key &left, type_key &right) {
+      return (get<0>(left) == get<0>(right));
+    }
+  };
+  using Hash_1 = hash_types_1::hash<type_key, 1>;
+  My_Hash<type_key, type_val, Hash_1, Eq_1, true, Update_Val0> hash_table_1(
+      hash_table_3._storage);
+  hash_table_3.clear();
+  hash_table_1.build_from_storage<true>();
+  for (const auto &it : *hash_table_1._storage) {
+    cout << get<0>(get<0>(it)) << ","
+         << "null"
+         << ","
+         << "null"
+         << "," << get<0>(get<1>(it)) << endl;
+  }
+  type_val hash_table_0;
+  for (const auto &it : *hash_table_1._storage) {
+    update_val0(hash_table_0, get<1>(it));
+  }
+  hash_table_1.clear();
+  {
+    cout << "null"
+         << ","
+         << "null"
+         << ","
+         << "null"
+         << "," << get<0>(hash_table_0) << endl;
+  }
+}

@@ -28,7 +28,7 @@ extern "C" void run_query6(const Database &db);
 extern "C" void run_query7(const Database &db);
 extern "C" void run_query_rollup_1(const Database &db);
 extern "C" void run_query_rollup_2(const Database &db);
-
+extern "C" void olap_query_001(const Database &db);
 
 
 
@@ -94,6 +94,65 @@ static void read_data(const string& path)
 //	in.close();
 }
 
+
+string create_query(Schema* schema) {
+	Context context(*schema);
+	stringstream out;
+
+	out << "#include \"Types.hpp\""   << endl;
+	out << "#include \"schema_1.hpp\""   << endl;
+	out << "#include \"my_hash.h\""   << endl;
+	out << "#include <iostream>"      << endl;
+	out << "#include <unordered_map>" << endl;
+	out << "#include <tuple>" << endl;
+	out << "using namespace std;"     << endl;
+
+	out << "extern \"C\" void olap_query_001(const Database& db) {" << endl;
+
+	OperatorScan scanOrder(&context, out, "order", "db");
+
+	OperatorGroupingSet groupingSet(&context, out
+		, {{"o_d_id"},{"o_w_id"},{"o_carrier_id"}}
+		, {7,6,5,4,3,2,1,0}
+		, {{"o_ol_cnt"}}
+	);
+
+	groupingSet.setInput(&scanOrder);
+	groupingSet.produce();
+	out << "}" << endl;
+	return out.str();
+}
+
+int main2(int argc, char* argv[]) {
+//	if (argc != 3) {
+//		cerr << "usage: " << argv[0]
+//			 << " <schema path> <output path>"
+//		     << endl
+//		     << argc << endl;
+//		return -1;
+//	}
+//	string path_schema = string(argv[1],strlen(argv[1]));
+//	string path_output = string(argv[2],strlen(argv[2]));
+
+	string path_schema = "/home/ankifor/Documents/CPP/DB_data/schema1.sql";
+	string path_output = "/home/ankifor/Documents/CPP/DB_data/q.cpp";
+
+
+	Parser_Schema p(path_schema);
+	try {
+		unique_ptr<Schema> schema = p.parse();
+
+		ofstream out;
+		out.open(path_output);
+		out << create_query(schema.get());
+		out.close();
+
+	} catch (ParserError& e) {
+		cerr << e.what() << endl;
+	}
+	return 0;
+}
+
 int main(int argc, char* argv[]) {
 	if (argc != 5) {
 		cerr << "usage: " << argv[0]
@@ -131,8 +190,9 @@ int main(int argc, char* argv[]) {
 //	run_queries.push_back({run_query3,"cube_unordMap_union"});
 //	run_queries.push_back({run_query4,"cube_myHash"});
 //	run_queries.push_back({run_query5,"cube_myHash_sameKey"});
-	run_queries.push_back({run_query6,"cube_myHash_reusage"});
-	run_queries.push_back({run_query7,"cube_myHash_reusage_depth"});
+//	run_queries.push_back({run_query6,"cube_myHash_reusage"});
+//	run_queries.push_back({run_query7,"cube_myHash_reusage_depth"});
+	run_queries.push_back({olap_query_001,"olap_query_001"});
 //	run_queries.push_back({run_query_rollup_1,"rollup_myHash"});
 //	run_queries.push_back({run_query_rollup_2,"rollup_myHash_reusage"});
 
@@ -146,13 +206,13 @@ int main(int argc, char* argv[]) {
 		x = chrono::milliseconds::zero();
 	}
 
-	int n = 3;
+	int n = 1;
 	ofstream devnull;
 	devnull.open("/dev/null");
 //	{int i; cout << "..."; cin >> i; cout << endl;}
 	try {
 		if (n<=0) throw runtime_error("negative number of runs");
-		auto coutbuf = cout.rdbuf(devnull.rdbuf());
+//		auto coutbuf = cout.rdbuf(devnull.rdbuf());
 		for (int i=0;i<n;++i) {
 			for (size_t cnt = 0; cnt < run_queries.size(); ++cnt) {
 				start = chrono::high_resolution_clock::now();
@@ -166,7 +226,7 @@ int main(int argc, char* argv[]) {
 				}
 			}
 		}
-		cout.rdbuf(coutbuf);
+//		cout.rdbuf(coutbuf);
 
 		for (size_t cnt = 0; cnt < run_queries.size(); ++cnt) {
 			cout
