@@ -161,14 +161,16 @@ protected:
 
 struct OperatorGroupingSet : public OperatorUnary {
 	OperatorGroupingSet(const Context* context, stringstream& out
-			, const vector<Field_Unit>& key_fields
-			, const vector<size_t>& key_groups
-			, const vector<Field_Unit>& val_fields)
+			, const vector<Field_Unit>& fields
+			, const vector<size_t>& key_fields_ind
+			, const vector<size_t>& val_fields_ind
+			, const vector<size_t>& key_groups)
 		: OperatorUnary(context,out)
 		{
-			this->key_fields = key_fields;
+			this->fields = fields;
+			this->key_fields_ind = key_fields_ind;
+			this->val_fields_ind = val_fields_ind;
 			this->key_groups = key_groups;
-			this->val_fields = val_fields;
 			root_group_index = 0;
 			print_root = false;
 		}
@@ -177,8 +179,8 @@ struct OperatorGroupingSet : public OperatorUnary {
 	void produce();
 
 protected:
-	void computeRequired();
-	void computeProduced() {fields = input->getProduced();}
+	void computeRequired() {/*nothing to do here*/};
+	void computeProduced();
 
 private:
 	void computeGroupsGraph();
@@ -199,9 +201,10 @@ private:
 	string update_val_instance;
 	vector<string> hash_table_group_names;
 
-	vector<Field_Unit> key_fields;
-	vector<size_t> key_groups;//binary masks
-	vector<Field_Unit> val_fields;
+	vector<size_t> key_fields_ind;
+	vector<size_t> val_fields_ind;
+	vector<size_t> key_groups;//binary masks for 'val_fields'
+
 };
 
 //==============================================================================

@@ -5,7 +5,6 @@
 using namespace std;
 
 template<typename T, size_t block_bytes>
-
 class Block_Storage {
 public:
 

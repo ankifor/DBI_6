@@ -191,23 +191,19 @@ void OperatorSelect::consume(const Operator* caller) {
 //==============================================================================
 // OperatorGroupingSet
 //==============================================================================
-void OperatorGroupingSet::computeRequired() {
-	for (const auto& f : key_fields) {
-		auto it = find(fields.begin(), fields.end(), f);
-		if (it == fields.end()) {
-			fields.push_back(f);
-		}
-	}
-	for (const auto& f : val_fields) {
-		auto it = find(fields.begin(), fields.end(), f);
-		if (it == fields.end()) {
-			fields.push_back(f);
+void OperatorGroupingSet::computeProduced() {
+	auto produced = input->getProduced();
+	for (auto it = fields.begin(); it != fields.end(); ) {
+		auto it_prod = find(produced.begin(), produced.end(), *it);
+		if (it_prod == produced.end()) {
+			assert(false);//should not happen
 		} else {
-			assert(false);
+			*it = *it_prod;
+			++it;
 		}
-
 	}
 }
+
 
 void OperatorGroupingSet::produce() {
 	computeGroupsGraph();
@@ -312,9 +308,8 @@ void OperatorGroupingSet::defineTypeKey() {
 
 	out << "using " << type_key << "=tuple<";
 	string delim = "";
-	for (const auto& f : key_fields) {
-		auto it = find(fields.begin(),fields.end(),f);
-		out << delim << it->type_name;
+	for (auto ind : key_fields_ind) {
+		out << delim << fields[ind].type_name;
 		delim = ",";
 	}
 	out << ">;";
@@ -326,9 +321,8 @@ void OperatorGroupingSet::defineTypeVal() {
 
 	out << "using " << type_val << "=tuple<";
 	string delim = "";
-	for (const auto& f : val_fields) {
-		auto it = find(fields.begin(),fields.end(),f);
-		out << delim << it->type_name;
+	for (auto ind : val_fields_ind) {
+		out << delim << fields[ind].type_name;
 		delim = ",";
 	}
 	out << ">;";
@@ -342,7 +336,7 @@ void OperatorGroupingSet::defineTypeUpdate() {
 		<< "{"
 		<< "void operator()(" << type_val << "& left" << ", const " << type_val << "& right) {";
 	//only addition
-	for (size_t i = 0; i < val_fields.size(); ++i) {
+	for (size_t i = 0; i < val_fields_ind.size(); ++i) {
 		out << "get<" << i << ">(left) += get<" << i << ">(right);";
 	}
 	out	<< "}"
@@ -377,7 +371,7 @@ void OperatorGroupingSet::defineHashTable(size_t group_index, const string& stor
 			out << "true;";
 		} else {
 			string delim = "";
-			for (size_t i = 0; i < key_fields.size(); ++i) {
+			for (size_t i = 0; i < key_fields_ind.size(); ++i) {
 				if (bitSetTest(group,i)) {
 					out << delim << "(get<" << i << ">(left) == get<" << i << ">(right))";
 					delim = " && ";
@@ -438,7 +432,7 @@ void OperatorGroupingSet::printHashTable(size_t group_index) {
 	out << "{cout<<";
 	//print key
 	string delim = "";
-	for (size_t i = 0; i < key_fields.size(); ++i) {
+	for (size_t i = 0; i < key_fields_ind.size(); ++i) {
 		out << delim;
 		if (bitSetTest(group, i)) {
 			out << "get<" << i << ">(" << key_token << ")";
@@ -448,7 +442,7 @@ void OperatorGroupingSet::printHashTable(size_t group_index) {
 		delim = "<<" + comma_token + "<<";
 	}
 	//print value
-	for (size_t i = 0; i < val_fields.size(); ++i) {
+	for (size_t i = 0; i < val_fields_ind.size(); ++i) {
 		out << delim  << "get<" << i << ">(" << val_token << ")";
 		delim = "<<" + comma_token + "<<";
 	}
@@ -477,8 +471,8 @@ void OperatorGroupingSet::consume(const Operator* caller) {
 		{
 			out << "make_tuple(";
 			delim = "";
-			for (const auto& f : key_fields) {
-				auto it = find(produced.begin(),produced.end(),f);
+			for (auto ind : key_fields_ind) {
+				auto it = find(produced.begin(),produced.end(),fields[ind]);
 				out << delim << it->token;
 				delim = ",";
 			}
@@ -491,8 +485,8 @@ void OperatorGroupingSet::consume(const Operator* caller) {
 	{
 		out << "make_tuple(";
 		delim = "";
-		for (const auto& f : val_fields) {
-			auto it = find(produced.begin(),produced.end(),f);
+		for (auto ind : val_fields_ind) {
+			auto it = find(produced.begin(),produced.end(),fields[ind]);
 			out << delim << it->token;
 			delim = ",";
 		}
@@ -519,7 +513,7 @@ void OperatorGroupingSet::computeGroupsGraph() {
 				last_bit = bit;
 			}
 		}
-		assert(key_fields.size() >= last_bit && key_fields.size() >= set_bits);
+		assert(key_fields_ind.size() >= last_bit && key_fields_ind.size() >= set_bits);
 		root_group = all_fields;
 	}
 	//sort in ascending order like size_t (works for binary masks)

@@ -1264,45 +1264,6 @@ extern "C" void run_query_rollup_2(const Database &db) {
 //	my_print_hash<false,false,false>(&val_000);
 //}
 
-extern "C" void olap_query_001(const Database& db) {
-  using type_key = tuple<Integer, Integer, Integer>;
-  using type_val = tuple<Numeric<2, 0>>;
-  struct Update_Val0 {
-    void operator()(type_val& left, const type_val& right) {
-      get<0>(left) += get<0>(right);
-    }
-  } update_val0;
-  struct Eq_1 {
-    bool operator()(type_key& left, type_key& right) {
-      return (get<0>(left) == get<0>(right));
-    }
-  };
-  using Hash_1 = hash_types_1::hash<type_key, 1>;
-  My_Hash<type_key, type_val, Hash_1, Eq_1, true, Update_Val0> hash_table_1(
-      nullptr);
-  for (Tid tid0 = 0; tid0 < db.order.size(); ++tid0) {
-    hash_table_1.modify(make_tuple(db.order.o_d_id[tid0], db.order.o_w_id[tid0],
-                                   db.order.o_carrier_id[tid0]),
-                        make_tuple(db.order.o_ol_cnt[tid0]));
-  }
-  for (const auto& it : *hash_table_1._storage) {
-    cout << get<0>(get<0>(it)) << ","
-         << "null"
-         << ","
-         << "null"
-         << "," << get<0>(get<1>(it)) << endl;
-  }
-  type_val hash_table_0;
-  for (const auto& it : *hash_table_1._storage) {
-    update_val0(hash_table_0, get<1>(it));
-  }
-  hash_table_1.clear();
-  {
-    cout << "null"
-         << ","
-         << "null"
-         << ","
-         << "null"
-         << "," << get<0>(hash_table_0) << endl;
-  }
+extern "C" void olap_query_001(const Database &db) {
+
 }

@@ -18,6 +18,8 @@ extern string type(const Schema::Relation::Attribute& attr);
 extern Name_Generator name_generator;
 
 namespace keyword {
+	const string Quit  = "quit"  ;
+	const string Exit  = "exit"  ;
 	const string Select  = "select"  ;
 	const string From    = "from"    ;
 	const string And    = "and"    ;
@@ -70,6 +72,9 @@ struct FUPredicate {
 struct Read_Token {
 	Read_Token() {
 		reserved_literals = ",;='\\()";
+		skip_literals = " \r\n\t";
+		last_symbol_set = false;
+		last_symbol = 0;
 	}
 
 	void push_reserved_literals(const string& src) {
@@ -81,78 +86,117 @@ struct Read_Token {
 		reserved_literals_stack.pop_back();
 	}
 
-	string operator()(istringstream& in, char* delim = nullptr) {
+	void push_skip_literals(const string& src) {
+		skip_literals_stack.push_back(skip_literals);
+		skip_literals = src;
+	}
+	void pop_skip_literals() {
+		skip_literals = skip_literals_stack.back();
+		skip_literals_stack.pop_back();
+	}
+
+	string operator()(istream& in) {
 		assert(!in.eof());
 		string tmp = "";
 		bool any = false;
 		char ch = 0;
-		if (delim != nullptr) *delim = 0;
-		while (in.get(ch)) {
-			if (reserved_literals.find(ch) !=std::string::npos) {
-				if (!any) {
-					tmp += ch;
-					any = true;
-				} else {
-					if (delim != nullptr) *delim = ch;
-					in.unget();
-				}
-				break;
-			} else if (whitespace.find(ch) !=std::string::npos) {
-				if (any) {
-					if (delim != nullptr) *delim = ch;
-					break;
-				}
-			} else {
-				tmp += ch;
-				any = true;
-			}
+
+		bool flag = true;
+		if (last_symbol_set) {
+			flag = process_symbol(last_symbol, any, tmp);
+		}
+
+		while (flag && in.get(ch)) {
+			flag =process_symbol(ch, any, tmp);
 		}
 		return tmp;
 	}
 private:
+	bool process_symbol(char ch, bool& any, string& tmp) {
+		last_symbol = 0;
+		last_symbol_set = false;
+		if (reserved_literals.find(ch) !=std::string::npos) {
+			if (!any) {
+				tmp += ch;
+				any = true;
+			} else {
+				last_symbol = ch;
+				last_symbol_set = true;
+			}
+			return false;
+		} else if (skip_literals.find(ch) !=std::string::npos) {
+			if (any) {
+				return false;
+			}
+		} else {
+			tmp += ch;
+			any = true;
+		}
+		return true;
+	}
 
 	string reserved_literals;
-	const string whitespace = " \r\n\t";
+	string skip_literals;
 	vector<string> reserved_literals_stack;
+	vector<string> skip_literals_stack;
+
+	char last_symbol;//some streams don't support unget, that's why we use vars
+	bool last_symbol_set;
 
 } read_token;
 
 
-static string read_quoted_text(istringstream& in) {
-	enum class State : unsigned { 
-		General, Screen, Finished
-	} state;
-	state = State::General;
-	
-	string res = "";
+static string read_quoted_text(istream& in) {
+	read_token.push_skip_literals("");
+	read_token.push_reserved_literals("'");
+
+
+	ostringstream res;
 	string tmp;
-	size_t start = in.tellg();
-	
-	while (!in.eof() && state != State::Finished) {
-		tmp = read_token(in);
-		switch (state) {
-			case State::General:
-				if (tmp == string(1,literal::Screen)) {
-					state = State::Screen;
-				} else if (tmp == string(1,literal::Quote)) {
-					state = State::Finished;
-					break;
-				}
-				break;
-			case State::Screen:
-				state = State::General;
-				break;
-			case State::Finished:
-				break;
-		}
+
+	while (!in.eof() && (tmp = read_token(in)) != "'") {
+		res << tmp;
 	}
-	
-	size_t end = (size_t)in.tellg() - 1;
-	if (end == string::npos) end = in.str().length() - 1;
-	return "\"" + in.str().substr(start, end-start) + "\"";
+
+
+	read_token.pop_reserved_literals();
+	read_token.pop_skip_literals();
+
+	return res.str();
+//	enum class State : unsigned {
+//		General, Screen, Finished
+//	} state;
+//	state = State::General;
+//
+//	string res = "";
+//	string tmp;
+//	size_t start = in.tellg();
+//
+//	while (!in.eof() && state != State::Finished) {
+//		tmp = read_token(in);
+//		switch (state) {
+//			case State::General:
+//				if (tmp == string(1,literal::Screen)) {
+//					state = State::Screen;
+//				} else if (tmp == string(1,literal::Quote)) {
+//					state = State::Finished;
+//					break;
+//				}
+//				break;
+//			case State::Screen:
+//				state = State::General;
+//				break;
+//			case State::Finished:
+//				break;
+//		}
+//	}
+//
+//	size_t end = (size_t)in.tellg() - 1;
+//	if (end == string::npos) end = in.str().length() - 1;
+//	return "\"" + in.str().substr(start, end-start) + "\"";
 }
 
-static string read_conditions_list(istringstream& in, vector<pair<string,string>>& conditions) {
+static string read_conditions_list(istream& in, vector<pair<string,string>>& conditions) {
 	enum class State : unsigned { 
 		Init, Left, Equal, Right, And, Finished
 	} state;
@@ -170,7 +214,7 @@ static string read_conditions_list(istringstream& in, vector<pair<string,string>
 					state = State::Left;
 				} else if (tmp == string(1,literal::Quote)) {
 					conditions.push_back(make_pair("",""));
-					conditions.back().first = read_quoted_text(in);
+					conditions.back().first = "\"" + read_quoted_text(in) + "\"";
 					state = State::Left;
 				} else {
 					throw ParserQueryError("Identifier, Number or Quoted Text expected",in.tellg());
@@ -181,7 +225,7 @@ static string read_conditions_list(istringstream& in, vector<pair<string,string>
 					conditions.back().second = tmp;
 					state = State::Right;
 				} else if (tmp == string(1,literal::Quote)) {
-					conditions.back().second = read_quoted_text(in);
+					conditions.back().second = "\"" + read_quoted_text(in) + "\"";
 					state = State::Right;
 				} else {
 					throw ParserQueryError("Identifier, Number or Quoted Text expected",in.tellg());
@@ -200,7 +244,8 @@ static string read_conditions_list(istringstream& in, vector<pair<string,string>
 				} else if (tmp == keyword::And) {
 					state = State::And;
 				} else {
-					throw ParserQueryError("';' or 'and' expected",in.tellg());
+					state = State::Finished;
+//					throw ParserQueryError("';' or 'and' expected",in.tellg());
 				}
 				break;
 			case State::Finished:
@@ -216,7 +261,7 @@ static string read_conditions_list(istringstream& in, vector<pair<string,string>
 
 
 static string read_delimited_list(
-		istringstream& in
+		istream& in
 		, const string& stop_str
 		, const string& delimiter
 		, const string& ignore_start, const string& ignore_end
@@ -227,11 +272,9 @@ static string read_delimited_list(
 	state = State::Init;
 	
 	string tmp;
-	char delim = 0;
-//	char prev_delim = 0;
 	string current_item;
 	while (!in.eof() && state != State::Finished) {
-		tmp = read_token(in, &delim);
+		tmp = read_token(in);
 		switch (state) {
 			case State::Comma:
 			case State::Init:
@@ -294,12 +337,15 @@ static string read_delimited_list(
 
 
 
-void Parser_Query::parse() {
+bool Parser_Query::parse() {
 	string tmp;
 
 	//select-clause
 	{
 		tmp = read_token(in);
+		if (tmp == keyword::Quit || tmp == keyword::Exit) {
+			return false;
+		}
 		if (tmp != keyword::Select) {
 			throw ParserQueryError("Select Expected",in.tellg());
 		}
@@ -537,6 +583,7 @@ void Parser_Query::parse() {
 
 
 	assert(tmp == string(1,literal::Semicolon));
+	return true;
 }
 
 string Parser_Query::generate() {
@@ -544,6 +591,7 @@ string Parser_Query::generate() {
 	Context context(schema);
 	stringstream out;
 	out << "#include \"Types.hpp\""   << endl;
+	out << "#include \"my_hash.h\""   << endl;
 	out << "#include \"schema_1.hpp\""   << endl;
 	out << "#include <iostream>"      << endl;
 	out << "#include <unordered_map>" << endl;
@@ -624,9 +672,6 @@ string Parser_Query::generate() {
 	if (joins.size() > 0) {
 		proj.setInput(&joins.back());
 	}
-	//print
-	OperatorPrint print(&context, out);
-	print.setInput(&proj);
 	//conditions & selects
 	vector<OperatorSelect> selects;
 	
@@ -713,8 +758,21 @@ string Parser_Query::generate() {
 	}
 	assert(conditions2.empty());
 	
+
+	//print
+	bool group_by = key_field_groups.size() > 0;
+	unique_ptr<OperatorUnary> final;
+	if (group_by) {
+		final = unique_ptr<OperatorUnary>(new OperatorGroupingSet(&context, out, fields, key_fields_ind, aggregated_fields_ind, key_field_groups));
+	} else {
+		final = unique_ptr<OperatorUnary>(new OperatorPrint(&context, out));
+	}
+
+	//OperatorPrint print(&context, out);
+	final->setInput(&proj);
+
 	out << "extern \"C\" void run_query(const Database& " + db_name + ") {" << endl;
-	print.produce();
+	final->produce();
 	out << "}";
 	
 	return out.str();

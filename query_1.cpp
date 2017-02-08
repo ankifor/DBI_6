@@ -1,3 +1,4 @@
+#include "my_hash.h"
 #include "Types.hpp"
 #include "schema_1.hpp"
 #include <iostream>

@@ -25,16 +25,17 @@ public:
 };
 
 struct Parser_Query {
-	istringstream in;
+	istream& in;
 	Schema schema;
 	string db_name;
 
 	Schema::Relation* rel;
 
-	Parser_Query(const string& query_text, const Schema* pschema, const string& db_name) 
-		: in(query_text), schema(*pschema), db_name(db_name), rel(nullptr) {}
+	Parser_Query(istream& in, const Schema* pschema, const string& db_name)
+		: in(in), schema(*pschema), db_name(db_name), rel(nullptr) {}
+
 	~Parser_Query() {};
-	void parse();
+	bool parse();
 	string generate();
 private:
 	void nextToken(unsigned line, const string& token, Schema& s);
