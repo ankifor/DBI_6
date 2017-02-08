@@ -40,6 +40,10 @@ private:
 	void nextToken(unsigned line, const string& token, Schema& s);
 	
 	vector<Field_Unit> fields;
+	vector<size_t> aggregated_fields_ind;
+	vector<size_t> key_field_groups;
+	vector<size_t> key_fields_ind;
 	vector<string> tables;
+
 	vector<pair<string,string>> conditions;
 };

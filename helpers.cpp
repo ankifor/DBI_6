@@ -22,3 +22,14 @@ void ReplaceStringInPlace(string& subject, const string& search, const string& r
 size_t log2(size_t x) {
 	return sizeof(x)*8 - __builtin_clzl(x);
 }
+
+bool subsetOf(size_t left, size_t right) {
+	size_t tmp = ~left | right;
+	const size_t all = ~size_t(0);
+	return tmp == all;
+}
+
+bool bitSetTest(size_t src, size_t bit) {
+	size_t res = (src >> bit) & 1;
+	return res == 1;
+}

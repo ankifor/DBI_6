@@ -29,16 +29,7 @@ struct RelPredicate {
 
 extern Name_Generator name_generator;
 
-static bool subsetOf(size_t left, size_t right) {
-	size_t tmp = ~left | right;
-	const size_t all = ~size_t(0);
-	return tmp == all;
-}
 
-static bool bitSet(size_t src, size_t bit) {
-	size_t res = (src >> bit) & 1;
-	return res == 1;
-}
 
 //void remove_not_required_fields(vector<Field_Unit>& produced, const vector<Field_Unit>& required) {
 //	for (auto it = produced.begin(); it != produced.end(); ) {
@@ -387,7 +378,7 @@ void OperatorGroupingSet::defineHashTable(size_t group_index, const string& stor
 		} else {
 			string delim = "";
 			for (size_t i = 0; i < key_fields.size(); ++i) {
-				if (bitSet(group,i)) {
+				if (bitSetTest(group,i)) {
 					out << delim << "(get<" << i << ">(left) == get<" << i << ">(right))";
 					delim = " && ";
 				}
@@ -449,7 +440,7 @@ void OperatorGroupingSet::printHashTable(size_t group_index) {
 	string delim = "";
 	for (size_t i = 0; i < key_fields.size(); ++i) {
 		out << delim;
-		if (bitSet(group, i)) {
+		if (bitSetTest(group, i)) {
 			out << "get<" << i << ">(" << key_token << ")";
 		} else {
 			out << null_token;
@@ -523,7 +514,7 @@ void OperatorGroupingSet::computeGroupsGraph() {
 		size_t set_bits = 0;
 		size_t last_bit = 0;
 		for (size_t bit = 0; bit < sizeof(size_t)*8; ++bit) {
-			if (bitSet(all_fields, bit)) {
+			if (bitSetTest(all_fields, bit)) {
 				++set_bits;
 				last_bit = bit;
 			}

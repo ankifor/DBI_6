@@ -109,3 +109,6 @@ namespace CHECK
 
 
 extern size_t log2(size_t x);
+extern bool subsetOf(size_t left, size_t right);
+extern bool bitSetTest(size_t src, size_t bit);
+
