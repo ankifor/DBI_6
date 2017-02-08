@@ -113,17 +113,21 @@ string create_query(Schema* schema) {
 
 	OperatorGroupingSet groupingSet(&context, out
 		, {{"o_d_id"},{"o_w_id"},{"o_carrier_id"}}
-		, {7,6,5,4,3,2,1,0}
+		, {0,1}
 		, {{"o_ol_cnt"}}
 	);
 
-	groupingSet.setInput(&scanOrder);
+	OperatorProjection projOrder(&context, out, {{"o_d_id"},{"o_w_id"},{"o_carrier_id"},{"o_ol_cnt"}});
+
+
+	groupingSet.setInput(&projOrder);
+	projOrder.setInput(&scanOrder);
 	groupingSet.produce();
 	out << "}" << endl;
 	return out.str();
 }
 
-int main2(int argc, char* argv[]) {
+int main1(int argc, char* argv[]) {
 //	if (argc != 3) {
 //		cerr << "usage: " << argv[0]
 //			 << " <schema path> <output path>"

@@ -32,7 +32,7 @@ struct Parser_Query {
 	Schema::Relation* rel;
 
 	Parser_Query(const string& query_text, const Schema* pschema, const string& db_name) 
-		: in(query_text), schema(*pschema), db_name(db_name) {}
+		: in(query_text), schema(*pschema), db_name(db_name), rel(nullptr) {}
 	~Parser_Query() {};
 	void parse();
 	string generate();

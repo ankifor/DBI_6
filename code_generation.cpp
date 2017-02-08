@@ -521,12 +521,14 @@ void OperatorGroupingSet::computeGroupsGraph() {
 		}
 
 		size_t set_bits = 0;
-		for (size_t bit = 0; bit < sizeof(size_t)*8 && bit == set_bits; ++bit) {
+		size_t last_bit = 0;
+		for (size_t bit = 0; bit < sizeof(size_t)*8; ++bit) {
 			if (bitSet(all_fields, bit)) {
 				++set_bits;
+				last_bit = bit;
 			}
 		}
-		assert(key_fields.size() == set_bits);
+		assert(key_fields.size() >= last_bit && key_fields.size() >= set_bits);
 		root_group = all_fields;
 	}
 	//sort in ascending order like size_t (works for binary masks)
