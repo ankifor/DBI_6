@@ -1,5 +1,6 @@
 #include "Types.hpp"
 #include "schema_1.hpp"
+#include "Help.hpp"
 #include <iostream>
 #include <unordered_map>
 #include <tuple>
@@ -9,6 +10,17 @@
 using namespace std;
 
 #define My_Hash_U(_Key, _Tp) My_Hash<_Key, _Tp, hash_types::hash<_Key>, equal_to<_Key>, true, UpdateVal>
+
+template<bool f1,bool f2,bool f3>
+struct myEq {
+	bool operator()(tuple<Integer,Integer,Integer>& left, tuple<Integer,Integer,Integer>& right) {
+		return
+			   (!f1 || get<0>(left)==get<0>(right))
+			&& (!f2 || get<1>(left)==get<1>(right))
+			&& (!f3 || get<2>(left)==get<2>(right))
+		;
+	}
+};
 
 //is generated
 template<bool f1,bool f2,bool f3,typename IndexType>
@@ -818,58 +830,6 @@ extern "C" void run_query4(const Database &db) {
 	my_print_hash<false,false,false>(&val_000);
 }
 
-template<bool f1,bool f2,bool f3>
-struct myEq {
-	bool operator()(tuple<Integer,Integer,Integer>& left, tuple<Integer,Integer,Integer>& right) {
-		return
-			   (!f1 || get<0>(left)==get<0>(right))
-			&& (!f2 || get<1>(left)==get<1>(right))
-			&& (!f3 || get<2>(left)==get<2>(right))
-		;
-	}
-};
-
-//template<bool f1,bool f2,bool f3>
-//bool My_Eq_1(const tuple<Integer,Integer,Integer>& left, const tuple<Integer,Integer,Integer>& right) {
-//	return
-//		   (!f1 || get<0>(left)==get<0>(right))
-//		&& (!f2 || get<1>(left)==get<1>(right))
-//		&& (!f3 || get<2>(left)==get<2>(right))
-//	;
-//}
-
-//static void hash_combine1(size_t& seed, size_t val) {
-//	seed ^= val + 0x9e3779b9 + (seed<<6) + (seed>>2);
-//}
-
-//template<bool f1,bool f2,bool f3>
-//struct myHash {
-//	size_t operator()(tuple<Integer,Integer,Integer>& key) {
-//		size_t seed = 0;
-//		if (f1) hash_combine1(seed,get<0>(key).hash());
-//		if (f2) hash_combine1(seed,get<1>(key).hash());
-//		if (f3) hash_combine1(seed,get<2>(key).hash());
-//		return seed;
-//	}
-//};
-
-//template<bool f1,bool f2,bool f3>
-//size_t My_Hash_1(const tuple<Integer,Integer,Integer>& key) {
-//	size_t seed = 0;
-//	if (f1) {
-//		seed = get<0>(key).hash();
-//		if (f2) hash_combine1(seed,get<1>(key).hash());
-//		if (f3) hash_combine1(seed,get<2>(key).hash());
-//	} else if (f2) {
-//		seed = get<1>(key).hash();
-//		if (f3) hash_combine1(seed,get<2>(key).hash());
-//	} else if (f3) {
-//		seed = get<2>(key).hash();
-//	}
-//	return seed;
-//}
-
-
 //4 with same key
 extern "C" void run_query5(const Database &db) {
 	using type_val = tuple<Numeric<2,0>>;
@@ -1109,6 +1069,147 @@ extern "C" void run_query7(const Database &db) {
 	my_print_hash<false,false,false>(&hash_0);
 }
 
+extern "C" void run_query8(const Database &db) {
+  using type_key = tuple<Integer, Integer, Integer>;
+  using type_val = tuple<Numeric<2, 0>>;
+  struct Update_Val0 {
+    void operator()(type_val &left, const type_val &right) {
+      get<0>(left) += get<0>(right);
+    }
+  } update_val0;
+  struct Eq_7 {
+    bool operator()(type_key &left, type_key &right) {
+      return (get<0>(left) == get<0>(right)) &&
+             (get<1>(left) == get<1>(right)) && (get<2>(left) == get<2>(right));
+    }
+  };
+  using Hash_7 = hash_types_1::hash<type_key, 7>;
+  My_Hash<type_key, type_val, Hash_7, Eq_7, true, Update_Val0> hash_table_7(
+      nullptr);
+  for (Tid tid0 = 0; tid0 < db.order.size(); ++tid0) {
+    hash_table_7.modify(make_tuple(db.order.o_d_id[tid0], db.order.o_w_id[tid0],
+                                   db.order.o_carrier_id[tid0]),
+                        make_tuple(db.order.o_ol_cnt[tid0]));
+  }
+  for (const auto &it : *hash_table_7._storage) {
+    cout << get<0>(get<0>(it)) << "," << get<1>(get<0>(it)) << ","
+         << get<2>(get<0>(it)) << "," << get<0>(get<1>(it)) << endl;
+  }
+  struct Eq_6 {
+    bool operator()(type_key &left, type_key &right) {
+      return (get<1>(left) == get<1>(right)) && (get<2>(left) == get<2>(right));
+    }
+  };
+  using Hash_6 = hash_types_1::hash<type_key, 6>;
+  My_Hash<type_key, type_val, Hash_6, Eq_6, true, Update_Val0> hash_table_6(
+      nullptr);
+  for (const auto &it : *hash_table_7._storage) {
+    hash_table_6.modify(get<0>(it), get<1>(it));
+  }
+  for (const auto &it : *hash_table_6._storage) {
+    cout << "null"
+         << "," << get<1>(get<0>(it)) << "," << get<2>(get<0>(it)) << ","
+         << get<0>(get<1>(it)) << endl;
+  }
+  hash_table_6.clear();
+  struct Eq_5 {
+    bool operator()(type_key &left, type_key &right) {
+      return (get<0>(left) == get<0>(right)) && (get<2>(left) == get<2>(right));
+    }
+  };
+  using Hash_5 = hash_types_1::hash<type_key, 5>;
+  My_Hash<type_key, type_val, Hash_5, Eq_5, true, Update_Val0> hash_table_5(
+      nullptr);
+  for (const auto &it : *hash_table_7._storage) {
+    hash_table_5.modify(get<0>(it), get<1>(it));
+  }
+  for (const auto &it : *hash_table_5._storage) {
+    cout << get<0>(get<0>(it)) << ","
+         << "null"
+         << "," << get<2>(get<0>(it)) << "," << get<0>(get<1>(it)) << endl;
+  }
+  struct Eq_4 {
+    bool operator()(type_key &left, type_key &right) {
+      return (get<2>(left) == get<2>(right));
+    }
+  };
+  using Hash_4 = hash_types_1::hash<type_key, 4>;
+  My_Hash<type_key, type_val, Hash_4, Eq_4, true, Update_Val0> hash_table_4(
+      hash_table_5._storage);
+  hash_table_5.clear();
+  hash_table_4.build_from_storage<true>();
+  for (const auto &it : *hash_table_4._storage) {
+    cout << "null"
+         << ","
+         << "null"
+         << "," << get<2>(get<0>(it)) << "," << get<0>(get<1>(it)) << endl;
+  }
+  hash_table_4.clear();
+  struct Eq_3 {
+    bool operator()(type_key &left, type_key &right) {
+      return (get<0>(left) == get<0>(right)) && (get<1>(left) == get<1>(right));
+    }
+  };
+  using Hash_3 = hash_types_1::hash<type_key, 3>;
+  My_Hash<type_key, type_val, Hash_3, Eq_3, true, Update_Val0> hash_table_3(
+      hash_table_7._storage);
+  hash_table_7.clear();
+  hash_table_3.build_from_storage<true>();
+  for (const auto &it : *hash_table_3._storage) {
+    cout << get<0>(get<0>(it)) << "," << get<1>(get<0>(it)) << ","
+         << "null"
+         << "," << get<0>(get<1>(it)) << endl;
+  }
+  struct Eq_2 {
+    bool operator()(type_key &left, type_key &right) {
+      return (get<1>(left) == get<1>(right));
+    }
+  };
+  using Hash_2 = hash_types_1::hash<type_key, 2>;
+  My_Hash<type_key, type_val, Hash_2, Eq_2, true, Update_Val0> hash_table_2(
+      nullptr);
+  for (const auto &it : *hash_table_3._storage) {
+    hash_table_2.modify(get<0>(it), get<1>(it));
+  }
+  for (const auto &it : *hash_table_2._storage) {
+    cout << "null"
+         << "," << get<1>(get<0>(it)) << ","
+         << "null"
+         << "," << get<0>(get<1>(it)) << endl;
+  }
+  hash_table_2.clear();
+  struct Eq_1 {
+    bool operator()(type_key &left, type_key &right) {
+      return (get<0>(left) == get<0>(right));
+    }
+  };
+  using Hash_1 = hash_types_1::hash<type_key, 1>;
+  My_Hash<type_key, type_val, Hash_1, Eq_1, true, Update_Val0> hash_table_1(
+      hash_table_3._storage);
+  hash_table_3.clear();
+  hash_table_1.build_from_storage<true>();
+  for (const auto &it : *hash_table_1._storage) {
+    cout << get<0>(get<0>(it)) << ","
+         << "null"
+         << ","
+         << "null"
+         << "," << get<0>(get<1>(it)) << endl;
+  }
+  type_val hash_table_0;
+  for (const auto &it : *hash_table_1._storage) {
+    update_val0(hash_table_0, get<1>(it));
+  }
+  hash_table_1.clear();
+  {
+    cout << "null"
+         << ","
+         << "null"
+         << ","
+         << "null"
+         << "," << get<0>(hash_table_0) << endl;
+  }
+}
+
 //rollup with my_hash
 extern "C" void run_query_rollup_1(const Database &db) {
 	using type_val = tuple<Numeric<2,0>>;
@@ -1207,62 +1308,183 @@ extern "C" void run_query_rollup_2(const Database &db) {
 	my_print_hash<false,false,false>(&val_000);
 }
 
-//extern "C" void run_query_rollup_3(const Database &db) {
-//	using type_val = tuple<Numeric<2,0>>;
-//	using type_key = tuple<Integer,Integer,Integer>;
-//	using type_hash = My_Hash_D<type_key, type_val, true>;
-//
-//	type_hash hash_111;
-//	type_hash hash_110;
-//	type_hash hash_100;
-//	hash_111
-//		.set_eq(My_Eq_1<true,true,true>)
-//		.set_upd(UpdateVal1)
-//		.set_hash(My_Hash_1<true,true,true>)
-//		.set_storage(type_hash::Storage_Ptr(new type_hash::Storage))
-//		;
-//
-//	hash_110
-//		.set_eq(My_Eq_1<true,true,false>)
-//		.set_upd(UpdateVal1)
-//		.set_hash(My_Hash_1<true,true,false>)
-//		.set_storage(hash_111.get_storage())
-//		;
-//
-//	hash_100
-//		.set_eq(My_Eq_1<true,false,false>)
-//		.set_upd(UpdateVal1)
-//		.set_hash(My_Hash_1<true,false,false>)
-//		.set_storage(hash_110.get_storage())
-//		;
-//
-//	type_val val_000;
-//
-//	//scan
-//	for (Tid tid0 = 0; tid0 < db.order.size(); ++tid0) {
-//		hash_111.modify(
-//			make_tuple(db.order.o_d_id[tid0],db.order.o_w_id[tid0],db.order.o_carrier_id[tid0])
-//			, make_tuple(db.order.o_ol_cnt[tid0])
-//		);
-//	}
-//
-//	my_print_hash1<true,true,true>(hash_111.get_storage().get());
-//
-//	hash_110.build_from_storage<true>();
-//	hash_111.clear();
-//
-//	my_print_hash1<true,true,false>(hash_110.get_storage().get());
-//
-//	hash_100.build_from_storage<true>();
-//	my_print_hash1<true,false,false>(hash_100.get_storage().get());
-//	//construct val_000 from hash_100
-//	for (auto it = hash_100.get_storage()->begin(); it != hash_100.get_storage()->end(); ++it) {
-//		update_val(val_000, get<1>(*it));
-//	}
-//	hash_100.clear();
-//
-//	my_print_hash<false,false,false>(&val_000);
-//}
+extern "C" void run_query_rollup_3(const Database &db) {
+  using type_key = tuple<Integer, Integer, Integer>;
+
+  using type_key_7 = tuple<Integer, Integer, Integer>;
+  using type_key_3 = tuple<Integer, Integer>;
+  using type_key_1 = tuple<Integer>;
+
+  using type_val = tuple<Numeric<2, 0>>;
+  struct Update_Val0 {
+    void operator()(type_val &left, const type_val &right) {
+      get<0>(left) += get<0>(right);
+    }
+  } update_val0;
+
+
+  unordered_map<type_key_7, type_val, hash_types::hash<type_key_7>> hash_table_7;
+  unordered_map<type_key_3, type_val, hash_types::hash<type_key_3>> hash_table_3;
+  unordered_map<type_key_1, type_val, hash_types::hash<type_key_1>> hash_table_1;
+  type_val hash_table_0;
+
+	for (Tid tid0 = 0; tid0 < db.order.size(); ++tid0)
+	{
+		auto it = hash_table_7.find(make_tuple(
+			 db.order.o_d_id[tid0]
+			,db.order.o_w_id[tid0]
+			,db.order.o_carrier_id[tid0]
+		));
+		if (it == hash_table_7.end()) {
+			hash_table_7.insert(make_pair(
+				make_tuple(
+					 db.order.o_d_id[tid0]
+					,db.order.o_w_id[tid0]
+					,db.order.o_carrier_id[tid0])
+				,make_tuple(db.order.o_ol_cnt[tid0])
+			));
+		} else {
+			update_val0(it->second,make_tuple(db.order.o_ol_cnt[tid0]));
+		}
+	}
+	for (const auto &it : hash_table_7) {
+		cout
+			<< get<0>(get<0>(it)) << "," << get<1>(get<0>(it)) << ","
+			<< get<2>(get<0>(it)) << "," << get<0>(get<1>(it)) << endl;
+	}
+	hash_table_7.clear();
+
+	for (Tid tid0 = 0; tid0 < db.order.size(); ++tid0)
+	{
+		auto it = hash_table_3.find(make_tuple(
+			 db.order.o_d_id[tid0]
+			,db.order.o_w_id[tid0]
+		));
+		if (it == hash_table_3.end()) {
+			hash_table_3.insert(make_pair(
+				make_tuple(
+					 db.order.o_d_id[tid0]
+					,db.order.o_w_id[tid0])
+				,make_tuple(db.order.o_ol_cnt[tid0])
+			));
+		} else {
+			update_val0(it->second,make_tuple(db.order.o_ol_cnt[tid0]));
+		}
+	}
+	for (const auto &it : hash_table_3) {
+		cout
+			<< get<0>(get<0>(it)) << "," << get<1>(get<0>(it)) << ","
+			<< "null" << "," << get<0>(get<1>(it)) << endl;
+	}
+	hash_table_3.clear();
+
+
+	for (Tid tid0 = 0; tid0 < db.order.size(); ++tid0)	{
+		auto it = hash_table_1.find(make_tuple(
+			 db.order.o_d_id[tid0]
+		));
+		if (it == hash_table_1.end()) {
+			hash_table_1.insert(make_pair(
+				make_tuple(
+					 db.order.o_d_id[tid0])
+				,make_tuple(db.order.o_ol_cnt[tid0])
+			));
+		} else {
+			update_val0(it->second,make_tuple(db.order.o_ol_cnt[tid0]));
+		}
+	}
+	for (const auto &it : hash_table_1) {
+		cout
+			<< get<0>(get<0>(it)) << "," << "null" << ","
+			<< "null" << "," << get<0>(get<1>(it)) << endl;
+	}
+	hash_table_1.clear();
+
+	for (Tid tid0 = 0; tid0 < db.order.size(); ++tid0)
+	{
+			update_val0(hash_table_0,make_tuple(db.order.o_ol_cnt[tid0]));
+	}
+	{
+	cout << "null"
+		 << "," << "null"
+		 << "," << "null"
+		 << "," << get<0>(hash_table_0) << endl;
+	}
+}
+
+
+extern "C" void run_query_rollup_4(const Database &db) {
+  using type_key = tuple<Integer, Integer, Integer>;
+  using type_val = tuple<Numeric<2, 0>>;
+  struct Update_Val0 {
+    void operator()(type_val &left, const type_val &right) {
+      get<0>(left) += get<0>(right);
+    }
+  } update_val0;
+  struct Eq_7 {
+    bool operator()(type_key &left, type_key &right) {
+      return (get<0>(left) == get<0>(right)) &&
+             (get<1>(left) == get<1>(right)) && (get<2>(left) == get<2>(right));
+    }
+  };
+  using Hash_7 = hash_types_1::hash<type_key, 7>;
+  My_Hash<type_key, type_val, Hash_7, Eq_7, true, Update_Val0> hash_table_7(
+      nullptr);
+  for (Tid tid0 = 0; tid0 < db.order.size(); ++tid0) {
+    hash_table_7.modify(make_tuple(db.order.o_d_id[tid0], db.order.o_w_id[tid0],
+                                   db.order.o_carrier_id[tid0]),
+                        make_tuple(db.order.o_ol_cnt[tid0]));
+  }
+  for (const auto &it : *hash_table_7._storage) {
+    cout << get<0>(get<0>(it)) << "," << get<1>(get<0>(it)) << ","
+         << get<2>(get<0>(it)) << "," << get<0>(get<1>(it)) << endl;
+  }
+  struct Eq_3 {
+    bool operator()(type_key &left, type_key &right) {
+      return (get<0>(left) == get<0>(right)) && (get<1>(left) == get<1>(right));
+    }
+  };
+  using Hash_3 = hash_types_1::hash<type_key, 3>;
+  My_Hash<type_key, type_val, Hash_3, Eq_3, true, Update_Val0> hash_table_3(
+      hash_table_7._storage);
+  hash_table_7.clear();
+  hash_table_3.build_from_storage<true>();
+  for (const auto &it : *hash_table_3._storage) {
+    cout << get<0>(get<0>(it)) << "," << get<1>(get<0>(it)) << ","
+         << "null"
+         << "," << get<0>(get<1>(it)) << endl;
+  }
+  struct Eq_1 {
+    bool operator()(type_key &left, type_key &right) {
+      return (get<0>(left) == get<0>(right));
+    }
+  };
+  using Hash_1 = hash_types_1::hash<type_key, 1>;
+  My_Hash<type_key, type_val, Hash_1, Eq_1, true, Update_Val0> hash_table_1(
+      hash_table_3._storage);
+  hash_table_3.clear();
+  hash_table_1.build_from_storage<true>();
+  for (const auto &it : *hash_table_1._storage) {
+    cout << get<0>(get<0>(it)) << ","
+         << "null"
+         << ","
+         << "null"
+         << "," << get<0>(get<1>(it)) << endl;
+  }
+  type_val hash_table_0;
+  for (const auto &it : *hash_table_1._storage) {
+    update_val0(hash_table_0, get<1>(it));
+  }
+  hash_table_1.clear();
+  {
+    cout << "null"
+         << ","
+         << "null"
+         << ","
+         << "null"
+         << "," << get<0>(hash_table_0) << endl;
+  }
+}
 
 extern "C" void olap_query_001(const Database &db) {
 

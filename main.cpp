@@ -25,6 +25,7 @@ using query_fun = void (*)(const Database &db);
 
 //extern "C" void run_query(const Database &db);
 
+void run_query_dummy(const Database &db) {}
 extern "C" void run_query0(const Database &db);
 extern "C" void run_query1(const Database &db);
 extern "C" void run_query2(const Database &db);
@@ -33,8 +34,11 @@ extern "C" void run_query4(const Database &db);
 extern "C" void run_query5(const Database &db);
 extern "C" void run_query6(const Database &db);
 extern "C" void run_query7(const Database &db);
+extern "C" void run_query8(const Database &db);
 extern "C" void run_query_rollup_1(const Database &db);
 extern "C" void run_query_rollup_2(const Database &db);
+extern "C" void run_query_rollup_3(const Database &db);
+extern "C" void run_query_rollup_4(const Database &db);
 extern "C" void olap_query_001(const Database &db);
 
 
@@ -165,10 +169,10 @@ int main1(int argc, char* argv[]) {
 	return 0;
 }
 
-int main2(int argc, char* argv[]) {
-	if (argc != 5) {
+int main(int argc, char* argv[]) {
+	if (argc < 7) {
 		cerr << "usage: " << argv[0]
-			 << " <table size> <max field 1> <max field 2> <max field 3>"
+			 << " <table size> <max field 1> <max field 2> <max field 3> <times> <method1> <method2> ... <methodk>"
 		     << endl
 		     << argc << endl;
 		return -1;
@@ -182,6 +186,14 @@ int main2(int argc, char* argv[]) {
 	long db_field1 = stol(argv[2]);
 	long db_field2 = stol(argv[3]);
 	long db_field3 = stol(argv[4]);
+	int n = stol(argv[5]);
+
+	vector<string> methods;
+	for (int i = 6; i < argc; ++i) {
+		methods.push_back(string(argv[i],strlen(argv[i])));
+	}
+
+
 	populate_order(db_count, db_field1, db_field2, db_field3);
 	string run_info;
 
@@ -196,17 +208,21 @@ int main2(int argc, char* argv[]) {
 	ofstream out;
 
 	vector<pair<query_fun,string>> run_queries;
-//	run_queries.push_back({run_query0,""});
-//	run_queries.push_back({run_query1,""});
-//	run_queries.push_back({run_query2,"cube_unordMap"});
-//	run_queries.push_back({run_query3,"cube_unordMap_union"});
-//	run_queries.push_back({run_query4,"cube_myHash"});
-//	run_queries.push_back({run_query5,"cube_myHash_sameKey"});
-//	run_queries.push_back({run_query6,"cube_myHash_reusage"});
-//	run_queries.push_back({run_query7,"cube_myHash_reusage_depth"});
+	run_queries.push_back({run_query_dummy,"none"});
+	run_queries.push_back({run_query0,""});
+	run_queries.push_back({run_query1,""});
+	run_queries.push_back({run_query2,"cube_unordMap"});
+	run_queries.push_back({run_query3,"cube_unordMap_union"});
+	run_queries.push_back({run_query4,"cube_myHash"});
+	run_queries.push_back({run_query5,"cube_myHash_sameKey"});
+	run_queries.push_back({run_query6,"cube_myHash_reusage"});
+	run_queries.push_back({run_query7,"cube_myHash_reusage_depth"});
+	run_queries.push_back({run_query8,"cube_final"});
+	run_queries.push_back({run_query_rollup_1,"rollup_myHash"});
+	run_queries.push_back({run_query_rollup_2,"rollup_myHash_reusage"});
+	run_queries.push_back({run_query_rollup_3,"rollup_union"});
+	run_queries.push_back({run_query_rollup_4,"rollup_final"});
 	run_queries.push_back({olap_query_001,"olap_query_001"});
-//	run_queries.push_back({run_query_rollup_1,"rollup_myHash"});
-//	run_queries.push_back({run_query_rollup_2,"rollup_myHash_reusage"});
 
 	vector<chrono::milliseconds> elapsed;
 	elapsed.resize(run_queries.size());
@@ -218,15 +234,30 @@ int main2(int argc, char* argv[]) {
 		x = chrono::milliseconds::zero();
 	}
 
-	int n = 1;
+
 	ofstream devnull;
 	devnull.open("/dev/null");
+
+
+	vector<size_t> methods_ind;
+	for (const auto& method : methods) {
+		for (size_t i = 0; i < run_queries.size(); ++i) {
+			if (run_queries[i].second == method) {
+				methods_ind.push_back(i);
+				break;
+			}
+		}
+	}
+
+
 //	{int i; cout << "..."; cin >> i; cout << endl;}
 	try {
 		if (n<=0) throw runtime_error("negative number of runs");
-//		auto coutbuf = cout.rdbuf(devnull.rdbuf());
+		auto coutbuf = cout.rdbuf(devnull.rdbuf());
 		for (int i=0;i<n;++i) {
-			for (size_t cnt = 0; cnt < run_queries.size(); ++cnt) {
+			//for (size_t cnt = 0; cnt < run_queries.size(); ++cnt)
+			for (auto cnt : methods_ind)
+			{
 				start = chrono::high_resolution_clock::now();
 				run_queries[cnt].first(db);
 				end = chrono::high_resolution_clock::now();
@@ -238,9 +269,11 @@ int main2(int argc, char* argv[]) {
 				}
 			}
 		}
-//		cout.rdbuf(coutbuf);
+		cout.rdbuf(coutbuf);
 
-		for (size_t cnt = 0; cnt < run_queries.size(); ++cnt) {
+//		for (size_t cnt = 0; cnt < run_queries.size(); ++cnt)
+		for (auto cnt : methods_ind)
+		{
 			cout
 				<< run_info << ","
 				<< run_queries[cnt].second << ","
@@ -258,7 +291,7 @@ int main2(int argc, char* argv[]) {
 }
 
 
-int main(int argc, char* argv[]) {
+int main3(int argc, char* argv[]) {
 //	if (argc != 5) {
 //		cerr << "usage: " << argv[0]
 //		     << " <schema file>"

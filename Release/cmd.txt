@@ -1,0 +1,5 @@
+grep -o -P '^mem_heap_B=[0-9]+$' ./massif.out | sed 's/mem_heap_B=//' | sort -rn | head -n 1
+
+
+
+valgrind --tool=massif --pages-as-heap=yes --massif-out-file=massif.out ./DBI-Project 1000000 10 10 100

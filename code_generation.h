@@ -20,7 +20,7 @@ public:
 			num = ++it->second;
 			with_number = true;
 		}
-		return suggested + (with_number? to_string(num) : "");
+		return suggested + (with_number? "_" + to_string(num) : "");
 	}
 };
 
